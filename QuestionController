@@ -1,38 +1,85 @@
 package com.example.controller;
 
+import com.example.model.Question;
+import com.example.model.Response;
 import com.example.service.QuestionService;
+import com.example.repository.QuestionRepository;
+import com.example.repository.ResponseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-@RestController
-@RequestMapping("/api")
+@Controller
+@RequestMapping("/questionnaire")
 public class QuestionController {
 
-    private final QuestionService questionService;
+    @Autowired
+    private QuestionRepository questionRepository;
 
     @Autowired
-    public QuestionController(QuestionService questionService) {
-        this.questionService = questionService;
+    private ResponseRepository responseRepository;
+
+    @Autowired
+    private QuestionService questionService; // Inject API service
+
+    // Display the parameter selection page before starting the questionnaire
+    @GetMapping("/parameter-selection")
+    public String showParameterSelection() {
+        return "parameterSelection"; // Ensure this file exists in templates/
     }
 
-    /**
-     * Endpoint to fetch questions based on user role.
-     *
-     * @param role The role of the user (e.g., "employee", "admin").
-     * @return A list of dynamically generated questions tailored to the role.
-     */
-    @GetMapping("/questions/{role}")
-    public List<Map<String, Object>> getQuestionsByRole(@PathVariable String role) {
-        try {
-            // Fetch and return questions as a list of maps with question text, options, and correct answer.
-            return questionService.getQuestionsForRole(role);
-        } catch (Exception e) {
-            // Handle exceptions and provide an appropriate response
-            e.printStackTrace();
-            return List.of(Map.of("error", "Error fetching questions. Please try again later."));
+    // Handle user input from parameterSelection.html and load the questionnaire
+    @PostMapping("/start")
+    public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
+                                     @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty,
+                                     @RequestParam(value = "selectedFramework", required = false) String selectedFramework,
+                                     Model model) {
+        // Fetch API-based questions
+        List<Map<String, Object>> apiQuestions = questionService.getQuestionsForRole(selectedRole);
+
+        // Fetch DB-based questions if applicable
+        List<Question> dbQuestions;
+        if (selectedDifficulty != null && selectedFramework != null) {
+            dbQuestions = questionRepository.findByRoleAndDifficultyAndFramework(selectedRole, selectedDifficulty, selectedFramework);
+        } else if (selectedDifficulty != null) {
+            dbQuestions = questionRepository.findByControlCategoryAndDifficulty(selectedRole, selectedDifficulty);
+        } else {
+            dbQuestions = questionRepository.findByRoleOrRoleIsNull(selectedRole);
         }
+
+        // Debugging logs
+        System.out.println("Fetched API Questions: " + apiQuestions);
+        System.out.println("Fetched DB Questions: " + dbQuestions);
+
+        model.addAttribute("questions", apiQuestions); // Ensure questionnaire.html expects API format
+        return "questionnaire"; // Ensure questionnaire.html exists in templates/
+    }
+
+    // Handle user submissions and save responses
+    @PostMapping("/submit")
+    public String submitQuestionnaire(@RequestParam Map<String, String> responses, Model model) {
+        for (Map.Entry<String, String> entry : responses.entrySet()) {
+            if (entry.getKey().startsWith("question_")) {
+                Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
+                String answer = entry.getValue();
+
+                Optional<Question> questionOptional = questionRepository.findById(questionId);
+                if (questionOptional.isPresent()) {
+                    Response response = new Response();
+                    response.setQuestion(questionOptional.get());
+                    response.setAnswer(answer);
+                    response.setTimestamp(LocalDateTime.now());
+                    responseRepository.save(response);
+                }
+            }
+        }
+
+        return "thankYou"; // Ensure thankYou.html exists in templates/
     }
 }
