@@ -1,7 +1,15 @@
 package com.example.model;
 
-import jakarta.persistence.*;
 
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "questions")
@@ -11,44 +19,30 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    
-      
     @Column(name = "question_text", nullable = false)
-    private String questionText;
+    private String text;
 
-    
-    @Column(name = "control_category", nullable = false)
+    @Column(name = "control_category")
     private String controlCategory;
 
-  
-    @Column(name = "framework", nullable = false)
+    @Column(name = "framework")
     private String framework;
 
- 
-    @Column(name = "difficulty", nullable = false)
+    @Column(name = "difficulty")
     private String difficulty;
 
     @Column(name = "score")
-    private int score;
+    private Integer score;
 
-    
-    @Column(name = "role", nullable = false) // Added the role column
-    private String role;  // New field for role
+    @Column(name = "role", nullable = false)
+    private String role;
 
-    // Default constructor
-    public Question() {}
-
-    // Constructor with parameters
-    public Question(String questionText, String controlCategory, String framework, String difficulty, int score, String role) {
-        this.questionText = questionText;
-        this.controlCategory = controlCategory;
-        this.framework = framework;
-        this.difficulty = difficulty;
-        this.score = score;
-        this.role = role;
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_type", nullable = false)
+    private QuestionType questionType; // Enum: TRUE_FALSE, MULTIPLE_CHOICE
 
     // Getters and Setters
+
     public Long getId() {
         return id;
     }
@@ -57,12 +51,12 @@ public class Question {
         this.id = id;
     }
 
-    public String getQuestionText() {
-        return questionText;
+    public String getText() {
+        return text;
     }
 
-    public void setQuestionText(String questionText) {
-        this.questionText = questionText;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public String getControlCategory() {
@@ -89,11 +83,11 @@ public class Question {
         this.difficulty = difficulty;
     }
 
-    public int getScore() {
+    public Integer getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(Integer score) {
         this.score = score;
     }
 
@@ -105,17 +99,11 @@ public class Question {
         this.role = role;
     }
 
-    // toString() method for debugging and logging
-    @Override
-    public String toString() {
-        return "Question{" +
-                "id=" + id +
-                ", questionText='" + questionText + '\'' +
-                ", controlCategory='" + controlCategory + '\'' +
-                ", framework='" + framework + '\'' +
-                ", difficulty='" + difficulty + '\'' +
-                ", score=" + score +
-                ", role='" + role + '\'' +
-                '}';
+    public QuestionType getQuestionType() {
+        return questionType;
+    }
+
+    public void setQuestionType(QuestionType questionType) {
+        this.questionType = questionType;
     }
 }
