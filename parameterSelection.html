@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Parameter Selection</title>
+</head>
+<body>
+    <h2>Select Your Role & Preferences</h2>
+
+    <form th:action="@{/questionnaire/start}" method="post">
+        <label for="role">Choose Your Role:</label>
+        <select id="role" name="selectedRole">
+            <option value="Developer">Developer</option>
+            <option value="Analyst">Analyst</option>
+            <option value="Manager">Manager</option>
+            <option value="Security Engineer">Security Engineer</option>
+            <option value="Other">Other</option>
+        </select>
+        <br>
+
+        <label for="difficulty">Choose Difficulty Level:</label>
+        <select id="difficulty" name="selectedDifficulty">
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+        </select>
+        <br>
+
+        <button type="submit">Begin Tech Questionnaire</button>
+    </form>
+</body>
+</html>
