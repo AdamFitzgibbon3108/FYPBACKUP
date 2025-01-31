@@ -5,15 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class QuestionService {
 
-    private static final String TRIVIA_API_URL = "https://opentdb.com/api.php?amount=5&category=18&type=multiple";
+    private static final String BASE_TRIVIA_API_URL = "https://opentdb.com/api.php?amount=5&category=18&type=multiple";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -23,15 +20,21 @@ public class QuestionService {
         this.objectMapper = new ObjectMapper();
     }
 
-    public List<Map<String, Object>> getQuestionsForRole(String role) {
+    public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
         List<Map<String, Object>> questions = new ArrayList<>();
 
         try {
-            // Debugging: Log the role
-            System.out.println("Fetching questions for role: " + role);
+            // Map user-selected role to a difficulty category (optional)
+            String apiDifficulty = mapRoleToDifficulty(role, difficulty);
+
+            // Construct API URL with difficulty
+            String apiUrl = BASE_TRIVIA_API_URL + "&difficulty=" + apiDifficulty;
+
+            // Debugging: Log the API request
+            System.out.println("Fetching questions from API: " + apiUrl);
 
             // Fetch questions from the Trivia API
-            String response = restTemplate.getForObject(TRIVIA_API_URL, String.class);
+            String response = restTemplate.getForObject(apiUrl, String.class);
 
             if (response != null) {
                 JsonNode jsonNode = objectMapper.readTree(response);
@@ -54,7 +57,7 @@ public class QuestionService {
                     options.add(result.get("correct_answer").asText());
 
                     // Shuffle options to randomize their order
-                    java.util.Collections.shuffle(options);
+                    Collections.shuffle(options);
 
                     questionData.put("options", options);
                     questionData.put("correctAnswer", result.get("correct_answer").asText());
@@ -71,4 +74,30 @@ public class QuestionService {
 
         return questions;
     }
+
+    // Map the role to difficulty level (optional, can be modified)
+    private String mapRoleToDifficulty(String role, String difficulty) {
+        if (difficulty != null && !difficulty.isEmpty()) {
+            return difficulty.toLowerCase(); // Convert user selection to API format
+        }
+
+        switch (role.toLowerCase()) {
+            case "developer":
+                return "medium";
+            case "analyst":
+                return "hard";
+            case "manager":
+                return "easy";
+            default:
+                return "medium"; // Default difficulty if not provided
+        }
+    }
+
+	public List<Map<String, Object>> getQuestionsForRole(String role) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
+
+
+
