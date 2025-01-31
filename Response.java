@@ -1,6 +1,14 @@
 package com.example.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,16 +20,19 @@ public class Response {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "question_id", nullable = false)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "question_id")
     private Question question;
 
-    private Long userId;  // This stores the ID of the user who answered the question
+    private String answer; // User's answer
 
-    private String answer;  // Stores the actual response/answer of the user
+    private Integer score;
 
-    private int score;  // This could store the score for this answer, calculated based on the response
-
-    private LocalDateTime timestamp;  // Capture the timestamp for when the response was submitted
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
 
     // Getters and Setters
 
@@ -33,20 +44,20 @@ public class Response {
         this.id = id;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
     public Question getQuestion() {
         return question;
     }
 
     public void setQuestion(Question question) {
         this.question = question;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 
     public String getAnswer() {
@@ -57,11 +68,11 @@ public class Response {
         this.answer = answer;
     }
 
-    public int getScore() {
+    public Integer getScore() {
         return score;
     }
 
-    public void setScore(int score) {
+    public void setScore(Integer score) {
         this.score = score;
     }
 
@@ -72,3 +83,4 @@ public class Response {
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
     }
+}
