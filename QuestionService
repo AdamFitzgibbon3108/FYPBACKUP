@@ -1,100 +1,102 @@
-package com.example.controller;
+package com.example.service;
 
-import com.example.model.Question;
-import com.example.model.Response;
-import com.example.service.QuestionService;
-import com.example.repository.QuestionRepository;
-import com.example.repository.ResponseRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-@Controller
-@RequestMapping("/questionnaire")
-public class QuestionController {
+@Service
+public class QuestionService {
 
-    @Autowired
-    private QuestionRepository questionRepository;
+    private static final String BASE_TRIVIA_API_URL = "https://opentdb.com/api.php?amount=5&category=18&type=multiple";
 
-    @Autowired
-    private ResponseRepository responseRepository;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    @Autowired
-    private QuestionService questionService; // Inject API service
-
-    // Display the parameter selection page before starting the questionnaire
-    @GetMapping("/parameter-selection")
-    public String showParameterSelection() {
-        return "parameterSelection"; // Ensure this file exists in templates/
+    public QuestionService() {
+        this.restTemplate = new RestTemplate();
+        this.objectMapper = new ObjectMapper();
     }
 
-    // Handle user input from parameterSelection.html and load the questionnaire
-    @PostMapping("/start")
-    public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
-                                     @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty,
-                                     @RequestParam(value = "selectedFramework", required = false) String selectedFramework,
-                                     Model model) {
-        // Fetch API-based questions
-        List<Map<String, Object>> apiQuestions = questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
+    public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
+        List<Map<String, Object>> questions = new ArrayList<>();
 
-        // Fetch DB-based questions if applicable
-        List<Question> dbQuestions;
-        if (selectedDifficulty != null && selectedFramework != null) {
-            dbQuestions = questionRepository.findByRoleAndDifficultyAndFramework(selectedRole, selectedDifficulty, selectedFramework);
-        } else if (selectedDifficulty != null) {
-            dbQuestions = questionRepository.findByControlCategoryAndDifficulty(selectedRole, selectedDifficulty);
-        } else {
-            dbQuestions = questionRepository.findByRoleOrRoleIsNull(selectedRole);
-        }
+        try {
+            // Map user-selected role to a difficulty category (optional)
+            String apiDifficulty = mapRoleToDifficulty(role, difficulty);
 
-        // Debugging logs
-        System.out.println("User Selected - Role: " + selectedRole + " | Difficulty: " + selectedDifficulty);
-        System.out.println("Fetched API Questions: " + apiQuestions);
-        System.out.println("Fetched DB Questions: " + dbQuestions);
+            // Construct API URL with difficulty
+            String apiUrl = BASE_TRIVIA_API_URL + "&difficulty=" + apiDifficulty;
 
-        // Store user parameters in model for later use
-        model.addAttribute("selectedRole", selectedRole);
-        model.addAttribute("selectedDifficulty", selectedDifficulty);
+            // Debugging: Log the API request
+            System.out.println("Fetching questions from API: " + apiUrl);
 
-        model.addAttribute("questions", apiQuestions); // Ensure questionnaire.html expects API format
-        return "questionnaire"; // Ensure questionnaire.html exists in templates/
-    }
+            // Fetch questions from the Trivia API
+            String response = restTemplate.getForObject(apiUrl, String.class);
 
-    // Handle user submissions and save responses
-    @PostMapping("/submit")
-    public String submitQuestionnaire(@RequestParam Map<String, String> responses,
-                                      @RequestParam("selectedRole") String selectedRole,
-                                      @RequestParam("selectedDifficulty") String selectedDifficulty,
-                                      Model model) {
-        for (Map.Entry<String, String> entry : responses.entrySet()) {
-            if (entry.getKey().startsWith("question_")) {
-                Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
-                String answer = entry.getValue();
+            if (response != null) {
+                JsonNode jsonNode = objectMapper.readTree(response);
 
-                Optional<Question> questionOptional = questionRepository.findById(questionId);
-                if (questionOptional.isPresent()) {
-                    Response response = new Response();
-                    response.setQuestion(questionOptional.get());
-                    response.setAnswer(answer);
-                    response.setTimestamp(LocalDateTime.now());
-
-                    // Store the selected role and difficulty
-                    response.setRole(selectedRole);
-                    response.setDifficulty(selectedDifficulty);
-
-                    responseRepository.save(response);
+                // Extract the results array
+                JsonNode results = jsonNode.get("results");
+                if (results == null || results.isEmpty()) {
+                    System.out.println("No results found in the API response.");
+                    return questions;
                 }
+
+                // Parse each question
+                for (JsonNode result : results) {
+                    Map<String, Object> questionData = new HashMap<>();
+                    questionData.put("question", result.get("question").asText());
+
+                    // Combine incorrect answers and correct answer into options
+                    List<String> options = new ArrayList<>();
+                    result.get("incorrect_answers").forEach(answer -> options.add(answer.asText()));
+                    options.add(result.get("correct_answer").asText());
+
+                    // Shuffle options to randomize their order
+                    Collections.shuffle(options);
+
+                    questionData.put("options", options);
+                    questionData.put("correctAnswer", result.get("correct_answer").asText());
+
+                    questions.add(questionData);
+                }
+            } else {
+                System.out.println("Trivia API returned no response.");
             }
+        } catch (Exception e) {
+            System.out.println("Failed to fetch questions from the Trivia API: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        return "thankYou"; // Ensure thankYou.html exists in templates/
+        return questions;
     }
+
+    // Map the role to difficulty level (optional, can be modified)
+    private String mapRoleToDifficulty(String role, String difficulty) {
+        if (difficulty != null && !difficulty.isEmpty()) {
+            return difficulty.toLowerCase(); // Convert user selection to API format
+        }
+
+        switch (role.toLowerCase()) {
+            case "developer":
+                return "medium";
+            case "analyst":
+                return "hard";
+            case "manager":
+                return "easy";
+            default:
+                return "medium"; // Default difficulty if not provided
+        }
+    }
+
+	public List<Map<String, Object>> getQuestionsForRole(String role) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
 
 
