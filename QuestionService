@@ -1,19 +1,25 @@
 package com.example.service;
 
+import com.example.model.Question;
+import com.example.repository.QuestionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
 @Service
-public class QuestionService {
+public class QuestionService {   
 
-    private static final String BASE_TRIVIA_API_URL = "https://opentdb.com/api.php?amount=5&category=18&type=multiple";
+    private static final String BASE_TRIVIA_API_URL = "https://opentdb.com/api.php?amount=%d&category=18&type=multiple";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
+
+    @Autowired
+    private QuestionRepository questionRepository;
 
     public QuestionService() {
         this.restTemplate = new RestTemplate();
@@ -23,59 +29,52 @@ public class QuestionService {
     public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
         List<Map<String, Object>> questions = new ArrayList<>();
 
-        try {
-            // Map user-selected role to a difficulty category (optional)
-            String apiDifficulty = mapRoleToDifficulty(role, difficulty);
+        // Fetch security-based questions from MySQL database
+        List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
+        for (Question sq : securityQuestions) {
+            Map<String, Object> questionData = new HashMap<>();
+            questionData.put("question", sq.getText());
+            questionData.put("questionType", sq.getQuestionType());
+            questionData.put("options", List.of("True", "False")); // Default options for TRUE_FALSE
+            questionData.put("correctAnswer", "True"); // Placeholder (modify based on DB)
+            questions.add(questionData);
+        }
 
-            // Construct API URL with difficulty
-            String apiUrl = BASE_TRIVIA_API_URL + "&difficulty=" + apiDifficulty;
-
-            // Debugging: Log the API request
-            System.out.println("Fetching questions from API: " + apiUrl);
-
-            // Fetch questions from the Trivia API
-            String response = restTemplate.getForObject(apiUrl, String.class);
-
-            if (response != null) {
+        // Fetch computing questions from API if not enough questions exist
+        int apiQuestionsNeeded = 15 - questions.size();
+        if (apiQuestionsNeeded > 0) {
+            String apiUrl = String.format(BASE_TRIVIA_API_URL, apiQuestionsNeeded) + "&difficulty=" + mapRoleToDifficulty(role, difficulty);
+            try {
+                String response = restTemplate.getForObject(apiUrl, String.class);
                 JsonNode jsonNode = objectMapper.readTree(response);
-
-                // Extract the results array
                 JsonNode results = jsonNode.get("results");
-                if (results == null || results.isEmpty()) {
-                    System.out.println("No results found in the API response.");
-                    return questions;
-                }
 
-                // Parse each question
                 for (JsonNode result : results) {
                     Map<String, Object> questionData = new HashMap<>();
                     questionData.put("question", result.get("question").asText());
 
-                    // Combine incorrect answers and correct answer into options
                     List<String> options = new ArrayList<>();
                     result.get("incorrect_answers").forEach(answer -> options.add(answer.asText()));
                     options.add(result.get("correct_answer").asText());
 
-                    // Shuffle options to randomize their order
                     Collections.shuffle(options);
 
                     questionData.put("options", options);
                     questionData.put("correctAnswer", result.get("correct_answer").asText());
+                    questionData.put("questionType", "MULTIPLE_CHOICE");
 
                     questions.add(questionData);
                 }
-            } else {
-                System.out.println("Trivia API returned no response.");
+            } catch (Exception e) {
+                System.out.println("Trivia API fetch error: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("Failed to fetch questions from the Trivia API: " + e.getMessage());
-            e.printStackTrace();
         }
 
+        Collections.shuffle(questions);
         return questions;
     }
 
-    // Map the role to difficulty level (optional, can be modified)
+    // Map the role to difficulty level
     private String mapRoleToDifficulty(String role, String difficulty) {
         if (difficulty != null && !difficulty.isEmpty()) {
             return difficulty.toLowerCase(); // Convert user selection to API format
@@ -92,11 +91,7 @@ public class QuestionService {
                 return "medium"; // Default difficulty if not provided
         }
     }
-
-	public List<Map<String, Object>> getQuestionsForRole(String role) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
+
 
 
