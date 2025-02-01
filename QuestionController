@@ -38,31 +38,19 @@ public class QuestionController {
     @PostMapping("/start")
     public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
                                      @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty,
-                                     @RequestParam(value = "selectedFramework", required = false) String selectedFramework,
                                      Model model) {
-        // Fetch API-based questions
-        List<Map<String, Object>> apiQuestions = questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
-
-        // Fetch DB-based questions if applicable
-        List<Question> dbQuestions;
-        if (selectedDifficulty != null && selectedFramework != null) {
-            dbQuestions = questionRepository.findByRoleAndDifficultyAndFramework(selectedRole, selectedDifficulty, selectedFramework);
-        } else if (selectedDifficulty != null) {
-            dbQuestions = questionRepository.findByControlCategoryAndDifficulty(selectedRole, selectedDifficulty);
-        } else {
-            dbQuestions = questionRepository.findByRoleOrRoleIsNull(selectedRole);
-        }
+        // Fetch questions from the database and API
+        List<Map<String, Object>> questions = questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
 
         // Debugging logs
         System.out.println("User Selected - Role: " + selectedRole + " | Difficulty: " + selectedDifficulty);
-        System.out.println("Fetched API Questions: " + apiQuestions);
-        System.out.println("Fetched DB Questions: " + dbQuestions);
+        System.out.println("Fetched Questions: " + questions.size());
 
         // Store user parameters in model for later use
         model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("selectedDifficulty", selectedDifficulty);
+        model.addAttribute("questions", questions);
 
-        model.addAttribute("questions", apiQuestions); // Ensure questionnaire.html expects API format
         return "questionnaire"; // Ensure questionnaire.html exists in templates/
     }
 
@@ -74,21 +62,25 @@ public class QuestionController {
                                       Model model) {
         for (Map.Entry<String, String> entry : responses.entrySet()) {
             if (entry.getKey().startsWith("question_")) {
-                Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
-                String answer = entry.getValue();
+                try {
+                    Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
+                    String answer = entry.getValue();
 
-                Optional<Question> questionOptional = questionRepository.findById(questionId);
-                if (questionOptional.isPresent()) {
-                    Response response = new Response();
-                    response.setQuestion(questionOptional.get());
-                    response.setAnswer(answer);
-                    response.setTimestamp(LocalDateTime.now());
+                    Optional<Question> questionOptional = questionRepository.findById(questionId);
+                    if (questionOptional.isPresent()) {
+                        Response response = new Response();
+                        response.setQuestion(questionOptional.get());
+                        response.setAnswer(answer);
+                        response.setTimestamp(LocalDateTime.now());
 
-                    // Store the selected role and difficulty
-                    response.setRole(selectedRole);
-                    response.setDifficulty(selectedDifficulty);
+                        // Store the selected role and difficulty
+                        response.setRole(selectedRole);
+                        response.setDifficulty(selectedDifficulty);
 
-                    responseRepository.save(response);
+                        responseRepository.save(response);
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Warning: Could not parse question ID: " + entry.getKey());
                 }
             }
         }
