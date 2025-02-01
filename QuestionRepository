@@ -2,14 +2,15 @@ package com.example.repository;
 
 import com.example.model.Question;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    List<Question> findByControlCategory(String controlCategory);
-    List<Question> findByControlCategoryAndDifficulty(String controlCategory, String difficulty);
-    List<Question> findAll();
-    List<Question> findByRoleOrRoleIsNull(String selectedRole);
-	List<Question> findByRoleAndDifficultyAndFramework(String selectedRole, String selectedDifficulty,
-			String selectedFramework);
+
+    // ✅ This method fetches RANDOM questions based on role and difficulty (limits to 15)
+    @Query(value = "SELECT * FROM questions WHERE role = ?1 AND difficulty = ?2 ORDER BY RAND() LIMIT 15", nativeQuery = true)
+    List<Question> findByRoleAndDifficulty(String role, String difficulty);
 }
