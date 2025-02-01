@@ -59,11 +59,14 @@ public class DashboardController {
                 .map(auth -> auth.getAuthority().replace("ROLE_", "").toLowerCase())
                 .orElse("employee");
 
-        // Fetch questions based on the role using the QuestionService
-        List<Map<String, Object>> questions = questionService.getQuestionsForRole(role);
+        // Default difficulty level (change as needed)
+        String difficulty = "medium"; 
+
+        // Fetch questions based on the role and difficulty using the QuestionService
+        List<Map<String, Object>> questions = questionService.getQuestionsForRole(role, difficulty);
 
         // Debugging: Log questions to verify
-        System.out.println("Role: " + role);
+        System.out.println("Role: " + role + " | Difficulty: " + difficulty);
         System.out.println("Questions: " + questions);
 
         model.addAttribute("username", username);
@@ -71,6 +74,7 @@ public class DashboardController {
         model.addAttribute("questions", questions); // Pass questions as a list of maps
         return "questionnaire";
     }
+
 
     /**
      * Handle the submission of questionnaire responses.
