@@ -80,7 +80,7 @@
             cursor: pointer;
         }
 
-        input[type="radio"] {
+        input[type="radio"], input[type="text"] {
             margin-right: 0.5rem;
             accent-color: #58a6ff;
         }
@@ -109,6 +109,12 @@
             overflow-y: auto;
             max-height: calc(80vh - 200px);
         }
+
+        .option-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -117,20 +123,44 @@
 
     <div class="container">
         <h1>Tech Questionnaire</h1>
-        <form action="/dashboard/responses/submit" method="post">
+        <form action="/questionnaire/submit" method="post">
             <div id="questionnaire" class="scrollable">
                 <!-- Iterate through the questions -->
                 <ul>
-                    <li th:each="question : ${questions}">
+                    <li th:each="question, questionStat : ${questions}">
                         <!-- Display the question -->
                         <div>
                             <strong th:text="${question['question']}"></strong>
                         </div>
-                        <!-- Display the options -->
-                        <div th:each="option : ${question['options']}">
+
+                        <!-- TRUE/FALSE Questions -->
+                        <div th:if="${question['questionType'] == 'TRUE_FALSE'}">
+                            <div class="option-container">
+                                <label>
+                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="True" required>
+                                    <span>True</span>
+                                </label>
+                                <label>
+                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="False" required>
+                                    <span>False</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- MULTIPLE CHOICE Questions -->
+                        <div th:if="${question['questionType'] == 'MULTIPLE_CHOICE'}">
+                            <div th:each="option : ${question['options']}" class="option-container">
+                                <label>
+                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="${option}" required>
+                                    <span th:text="${option}"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- OPEN-ENDED Questions (Text Input) -->
+                        <div th:if="${question['questionType'] == 'OPEN_ENDED'}">
                             <label>
-                                <input type="radio" th:name="'question' + ${questionStat.index}" th:value="${option}">
-                                <span th:text="${option}"></span>
+                                <input type="text" th:name="'question_' + ${question['id']}" placeholder="Type your answer here..." required>
                             </label>
                         </div>
                     </li>
