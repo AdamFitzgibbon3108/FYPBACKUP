@@ -33,76 +33,100 @@ public class QuestionService {
         // Fetch security-based questions from MySQL database
         List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
         for (Question sq : securityQuestions) {
-            Map<String, Object> questionData = new HashMap<>();
-            questionData.put("id", sq.getId());
-            questionData.put("question", sq.getText());
-            questionData.put("questionType", sq.getQuestionType().toString());
+            if (sq.getQuestionType() == QuestionType.TRUE_FALSE || sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("id", sq.getId());
+                questionData.put("question", sq.getText());
+                questionData.put("questionType", sq.getQuestionType().toString());
 
-            // Add options for TRUE_FALSE or MULTIPLE_CHOICE questions
-            if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
-                questionData.put("options", List.of("True", "False"));
-            } else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE && sq.getOptions() != null && !((JsonNode) sq.getOptions()).isEmpty()) {
-                questionData.put("options", sq.getOptions()); // Use actual options from the database
-            } else {
-                continue; // Skip questions without answer options
+                // Handle TRUE_FALSE questions
+                if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
+                    questionData.put("options", List.of("True", "False"));
+                }
+                // Handle MULTIPLE_CHOICE questions
+                else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                    List<String> options = extractOptions(sq.getOptions());
+                    if (!options.isEmpty()) {
+                        questionData.put("options", options);
+                    } else {
+                        continue; // Skip questions without answer options
+                    }
+                }
+                questions.add(questionData);
             }
-
-            questions.add(questionData);
         }
 
         // Fetch computing questions from API if not enough questions exist
         int apiQuestionsNeeded = 15 - questions.size();
         if (apiQuestionsNeeded > 0) {
             String apiUrl = String.format(BASE_TRIVIA_API_URL, apiQuestionsNeeded) + "&difficulty=" + mapRoleToDifficulty(role, difficulty);
-            try {
-                String response = restTemplate.getForObject(apiUrl, String.class);
-                JsonNode jsonNode = objectMapper.readTree(response);
-                JsonNode results = jsonNode.get("results");
-
-                for (JsonNode result : results) {
-                    Map<String, Object> questionData = new HashMap<>();
-                    questionData.put("question", result.get("question").asText());
-
-                    List<String> options = new ArrayList<>();
-                    result.get("incorrect_answers").forEach(answer -> options.add(answer.asText()));
-                    options.add(result.get("correct_answer").asText());
-
-                    Collections.shuffle(options);
-
-                    if (!options.isEmpty()) {
-                        questionData.put("options", options);
-                        questionData.put("correctAnswer", result.get("correct_answer").asText());
-                        questionData.put("questionType", "MULTIPLE_CHOICE");
-                        questions.add(questionData);
-                    }
-                }
-            } catch (Exception e) {
-                System.out.println("Trivia API fetch error: " + e.getMessage());
-            }
+            fetchQuestionsFromAPI(apiUrl, questions);
         }
 
         Collections.shuffle(questions);
         return questions;
     }
 
-    // Map the role to difficulty level
+    // Extracts options from JSON safely
+    private List<String> extractOptions(Object options) {
+        List<String> extractedOptions = new ArrayList<>();
+        if (options instanceof JsonNode) {
+            JsonNode jsonOptions = (JsonNode) options;
+            for (JsonNode option : jsonOptions) {
+                extractedOptions.add(option.asText());
+            }
+        } else if (options instanceof List) {
+            extractedOptions = (List<String>) options;
+        }
+        return extractedOptions;
+    }
+
+    // Fetches additional questions from the Trivia API
+    private void fetchQuestionsFromAPI(String apiUrl, List<Map<String, Object>> questions) {
+        try {
+            String response = restTemplate.getForObject(apiUrl, String.class);
+            JsonNode jsonNode = objectMapper.readTree(response);
+            JsonNode results = jsonNode.get("results");
+
+            for (JsonNode result : results) {
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("question", result.get("question").asText());
+
+                List<String> options = new ArrayList<>();
+                result.get("incorrect_answers").forEach(answer -> options.add(answer.asText()));
+                options.add(result.get("correct_answer").asText());
+
+                Collections.shuffle(options);
+
+                if (!options.isEmpty()) {
+                    questionData.put("options", options);
+                    questionData.put("correctAnswer", result.get("correct_answer").asText());
+                    questionData.put("questionType", "MULTIPLE_CHOICE");
+                    questions.add(questionData);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Trivia API fetch error: " + e.getMessage());
+        }
+    }
+
+    // Maps the role to a difficulty level for the API
     private String mapRoleToDifficulty(String role, String difficulty) {
         if (difficulty != null && !difficulty.isEmpty()) {
             return difficulty.toLowerCase(); // Convert user selection to API format
         }
 
-        switch (role.toLowerCase()) {
-            case "developer":
-                return "medium";
-            case "analyst":
-                return "hard";
-            case "manager":
-                return "easy";
-            default:
-                return "medium"; // Default difficulty if not provided
-        }
+        Map<String, String> roleToDifficultyMap = Map.of(
+                "developer", "medium",
+                "analyst", "hard",
+                "manager", "easy"
+        );
+
+        return roleToDifficultyMap.getOrDefault(role.toLowerCase(), "medium");
     }
 }
+
+
 
 
 
