@@ -38,12 +38,13 @@ public class QuestionService {
             questionData.put("question", sq.getText());
             questionData.put("questionType", sq.getQuestionType().toString());
 
+            // Add options for TRUE_FALSE or MULTIPLE_CHOICE questions
             if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
                 questionData.put("options", List.of("True", "False"));
-            } else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                questionData.put("options", Arrays.asList("Option 1", "Option 2", "Option 3", "Option 4")); 
-            } else if (sq.getQuestionType() == QuestionType.OPEN_ENDED) {
-                questionData.put("options", Collections.emptyList()); // No options for open-ended
+            } else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE && sq.getOptions() != null && !((JsonNode) sq.getOptions()).isEmpty()) {
+                questionData.put("options", sq.getOptions()); // Use actual options from the database
+            } else {
+                continue; // Skip questions without answer options
             }
 
             questions.add(questionData);
@@ -68,11 +69,12 @@ public class QuestionService {
 
                     Collections.shuffle(options);
 
-                    questionData.put("options", options);
-                    questionData.put("correctAnswer", result.get("correct_answer").asText());
-                    questionData.put("questionType", "MULTIPLE_CHOICE");
-
-                    questions.add(questionData);
+                    if (!options.isEmpty()) {
+                        questionData.put("options", options);
+                        questionData.put("correctAnswer", result.get("correct_answer").asText());
+                        questionData.put("questionType", "MULTIPLE_CHOICE");
+                        questions.add(questionData);
+                    }
                 }
             } catch (Exception e) {
                 System.out.println("Trivia API fetch error: " + e.getMessage());
@@ -101,6 +103,7 @@ public class QuestionService {
         }
     }
 }
+
 
 
 
