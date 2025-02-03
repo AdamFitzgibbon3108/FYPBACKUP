@@ -2,10 +2,14 @@ package com.example.controller;
 
 import com.example.model.Question;
 import com.example.model.Response;
+import com.example.model.User;
 import com.example.service.QuestionService;
 import com.example.repository.QuestionRepository;
 import com.example.repository.ResponseRepository;
+import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,40 +30,43 @@ public class QuestionController {
     private ResponseRepository responseRepository;
 
     @Autowired
-    private QuestionService questionService; // Inject API service
+    private UserRepository userRepository; // Inject user repository
 
-    // Display the parameter selection page before starting the questionnaire
+    @Autowired
+    private QuestionService questionService;
+
     @GetMapping("/parameter-selection")
     public String showParameterSelection() {
-        return "parameterSelection"; // Ensure this file exists in templates/
+        return "parameterSelection";
     }
 
-    // Handle user input from parameterSelection.html and load the questionnaire
     @PostMapping("/start")
     public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
                                      @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty,
                                      Model model) {
-        // Fetch questions from the database and API
         List<Map<String, Object>> questions = questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
-
-        // Debugging logs
-        System.out.println("User Selected - Role: " + selectedRole + " | Difficulty: " + selectedDifficulty);
-        System.out.println("Fetched Questions: " + questions.size());
-
-        // Store user parameters in model for later use
         model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("selectedDifficulty", selectedDifficulty);
         model.addAttribute("questions", questions);
 
-        return "questionnaire"; // Ensure questionnaire.html exists in templates/
+        return "questionnaire";
     }
 
-    // Handle user submissions and save responses
     @PostMapping("/submit")
     public String submitQuestionnaire(@RequestParam Map<String, String> responses,
                                       @RequestParam("selectedRole") String selectedRole,
                                       @RequestParam("selectedDifficulty") String selectedDifficulty,
                                       Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+
+        Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username));
+        if (userOptional.isEmpty()) {
+            return "error"; // Redirect to an error page if user is not found
+        }
+
+        User user = userOptional.get(); // Retrieve the logged-in user
+
         for (Map.Entry<String, String> entry : responses.entrySet()) {
             if (entry.getKey().startsWith("question_")) {
                 try {
@@ -69,11 +76,10 @@ public class QuestionController {
                     Optional<Question> questionOptional = questionRepository.findById(questionId);
                     if (questionOptional.isPresent()) {
                         Response response = new Response();
+                        response.setUser(user); // Set the user
                         response.setQuestion(questionOptional.get());
                         response.setAnswer(answer);
                         response.setTimestamp(LocalDateTime.now());
-
-                        // Store the selected role and difficulty
                         response.setRole(selectedRole);
                         response.setDifficulty(selectedDifficulty);
 
@@ -85,6 +91,7 @@ public class QuestionController {
             }
         }
 
-        return "thankYou"; // Ensure thankYou.html exists in templates/
+        return "thankYou"; 
     }
 }
+
