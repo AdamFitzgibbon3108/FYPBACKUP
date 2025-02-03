@@ -30,7 +30,7 @@ public class QuestionController {
     private ResponseRepository responseRepository;
 
     @Autowired
-    private UserRepository userRepository; // Inject user repository
+    private UserRepository userRepository;
 
     @Autowired
     private QuestionService questionService;
@@ -48,7 +48,6 @@ public class QuestionController {
         model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("selectedDifficulty", selectedDifficulty);
         model.addAttribute("questions", questions);
-
         return "questionnaire";
     }
 
@@ -76,12 +75,13 @@ public class QuestionController {
                     Optional<Question> questionOptional = questionRepository.findById(questionId);
                     if (questionOptional.isPresent()) {
                         Response response = new Response();
-                        response.setUser(user); // Set the user
+                        response.setUser(user);
                         response.setQuestion(questionOptional.get());
                         response.setAnswer(answer);
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
                         response.setDifficulty(selectedDifficulty);
+                        response.setScore(0); // Ensure score is stored properly
 
                         responseRepository.save(response);
                     }
@@ -91,7 +91,6 @@ public class QuestionController {
             }
         }
 
-        return "thankYou"; 
+        return "thankYou";
     }
 }
-
