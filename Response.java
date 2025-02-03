@@ -3,7 +3,7 @@ package com.example.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity 
+@Entity
 @Table(name = "responses")
 public class Response {
 
@@ -19,7 +19,7 @@ public class Response {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
     @Column(nullable = false)
@@ -28,7 +28,6 @@ public class Response {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    // New fields added for role and difficulty
     @Column(nullable = false)
     private String role;
 
@@ -38,7 +37,6 @@ public class Response {
     // Default constructor
     public Response() {}
 
-    // Constructor with all fields
     public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String difficulty) {
         this.question = question;
         this.user = user;
@@ -50,69 +48,28 @@ public class Response {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public Question getQuestion() { return question; }
+    public void setQuestion(Question question) { this.question = question; }
 
-    public Question getQuestion() {
-        return question;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public void setQuestion(Question question) {
-        this.question = question;
-    }
+    public String getAnswer() { return answer; }
+    public void setAnswer(String answer) { this.answer = answer; }
 
-    public User getUser() {
-        return user;
-    }
+    public int getScore() { return score; }
+    public void setScore(int score) { this.score = score; }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 
-    public String getAnswer() {
-        return answer;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public void setAnswer(String answer) {
-        this.answer = answer;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    // Getter and Setter for Role
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    // Getter and Setter for Difficulty
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
 }
+
