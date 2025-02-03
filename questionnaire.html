@@ -123,44 +123,49 @@
 
     <div class="container">
         <h1>Tech Questionnaire</h1>
-        <form action="/questionnaire/submit" method="post">
-            <div id="questionnaire" class="scrollable">
-                <!-- Iterate through the questions -->
-                <ul>
-                    <li th:each="question, questionStat : ${questions}">
-                        <!-- Display the question -->
-                        <div>
-                            <strong th:text="${question['question']}"></strong>
-                        </div>
+<form action="/questionnaire/submit" method="post">
+    <!-- Add hidden fields to pass role and difficulty -->
+    <input type="hidden" th:name="selectedRole" th:value="${selectedRole}" />
+    <input type="hidden" th:name="selectedDifficulty" th:value="${selectedDifficulty}" />
 
-                        <!-- TRUE/FALSE Questions -->
-                        <div th:if="${question['questionType'] == 'TRUE_FALSE'}">
-                            <div class="option-container">
-                                <label>
-                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="True" required>
-                                    <span>True</span>
-                                </label>
-                                <label>
-                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="False" required>
-                                    <span>False</span>
-                                </label>
-                            </div>
-                        </div>
+    <div id="questionnaire" class="scrollable">
+        <ul>
+            <li th:each="question, questionStat : ${questions}">
+                <div>
+                    <strong th:text="${question['question']}"></strong>
+                </div>
 
-                        <!-- MULTIPLE CHOICE Questions -->
-                        <div th:if="${question['questionType'] == 'MULTIPLE_CHOICE'}">
-                            <div th:each="option : ${question['options']}" class="option-container">
-                                <label>
-                                    <input type="radio" th:name="'question_' + ${question['id']}" th:value="${option}" required>
-                                    <span th:text="${option}"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-            <button type="submit">Submit Responses</button>
-        </form>
+                <!-- TRUE/FALSE Questions -->
+                <div th:if="${question['questionType'] == 'TRUE_FALSE'}">
+                    <div class="option-container">
+                        <label>
+                            <input type="radio" th:name="'question_' + ${question['id']}" th:value="True" required>
+                            <span>True</span>
+                        </label>
+                        <label>
+                            <input type="radio" th:name="'question_' + ${question['id']}" th:value="False" required>
+                            <span>False</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- MULTIPLE CHOICE Questions -->
+                <div th:if="${question['questionType'] == 'MULTIPLE_CHOICE'}">
+                    <div th:each="option : ${question['options']}" class="option-container">
+                        <label>
+                            <input type="radio" th:name="'question_' + ${question['id']}" th:value="${option}" required>
+                            <span th:text="${option}"></span>
+                        </label>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <button type="submit">Submit Responses</button>
+</form>
+
+
     </div>
 </body>
 </html>
