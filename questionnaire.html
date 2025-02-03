@@ -80,7 +80,7 @@
             cursor: pointer;
         }
 
-        input[type="radio"], input[type="text"] {
+        input[type="radio"] {
             margin-right: 0.5rem;
             accent-color: #58a6ff;
         }
@@ -155,13 +155,6 @@
                                     <span th:text="${option}"></span>
                                 </label>
                             </div>
-                        </div>
-
-                        <!-- OPEN-ENDED Questions (Text Input) -->
-                        <div th:if="${question['questionType'] == 'OPEN_ENDED'}">
-                            <label>
-                                <input type="text" th:name="'question_' + ${question['id']}" placeholder="Type your answer here..." required>
-                            </label>
                         </div>
                     </li>
                 </ul>
