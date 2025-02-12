@@ -25,9 +25,8 @@ public class QuestionService {
      */
     public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
         List<Map<String, Object>> questions = new ArrayList<>();
-
-        // Fetch security-based questions from the database
         List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
+
         for (Question sq : securityQuestions) {
             Map<String, Object> questionData = new HashMap<>();
             questionData.put("id", sq.getId());
@@ -94,3 +93,5 @@ public class QuestionService {
         return questionRepository.findById(questionId);
     }
 }
+
+
