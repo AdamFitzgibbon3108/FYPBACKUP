@@ -10,8 +10,6 @@ import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -19,8 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Controller
-@RequestMapping("/questionnaire")
+@RestController
+@RequestMapping("/api/questions")
 public class QuestionController {
 
     @Autowired
@@ -35,33 +33,36 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    @GetMapping("/parameter-selection")
-    public String showParameterSelection() {
-        return "parameterSelection";
+    /**
+     * Fetch all questions for a given category
+     */
+    @GetMapping("/category/{category}")
+    public List<Question> getQuestionsByCategory(@PathVariable String category) {
+        return questionService.getQuestionsByCategory(category);
     }
 
+    /**
+     * Start a questionnaire by fetching questions based on role and difficulty.
+     */
     @PostMapping("/start")
-    public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
-                                     @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty,
-                                     Model model) {
-        List<Map<String, Object>> questions = questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
-        model.addAttribute("selectedRole", selectedRole);
-        model.addAttribute("selectedDifficulty", selectedDifficulty);
-        model.addAttribute("questions", questions);
-        return "questionnaire";
+    public List<Map<String, Object>> startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
+                                                        @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty) {
+        return questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
     }
 
+    /**
+     * Submit responses for a questionnaire.
+     */
     @PostMapping("/submit")
     public String submitQuestionnaire(@RequestParam Map<String, String> responses,
                                       @RequestParam("selectedRole") String selectedRole,
-                                      @RequestParam("selectedDifficulty") String selectedDifficulty,
-                                      Model model) {
+                                      @RequestParam("selectedDifficulty") String selectedDifficulty) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
         Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username));
         if (userOptional.isEmpty()) {
-            return "error"; // Redirect to an error page if user is not found
+            return "Error: User not found!";
         }
 
         User user = userOptional.get(); // Retrieve the logged-in user
@@ -90,7 +91,6 @@ public class QuestionController {
                 }
             }
         }
-
-        return "thankYou";
+        return "Responses submitted successfully!";
     }
 }
