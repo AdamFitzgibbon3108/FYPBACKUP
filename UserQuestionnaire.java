@@ -2,6 +2,7 @@ package com.example.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -16,25 +17,23 @@ public class UserQuestionnaire {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(
         name = "user_questionnaire_questions",
         joinColumns = @JoinColumn(name = "user_questionnaire_id"),
         inverseJoinColumns = @JoinColumn(name = "question_id")
     )
-    private List<Question> questions;
+    private List<Question> selectedQuestions = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // Constructors
-    public UserQuestionnaire() {
-        this.createdAt = LocalDateTime.now();
-    }
+    public UserQuestionnaire() {}
 
-    public UserQuestionnaire(User user, List<Question> questions) {
+    public UserQuestionnaire(User user, List<Question> selectedQuestions) {
         this.user = user;
-        this.questions = questions;
+        this.selectedQuestions = selectedQuestions;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -42,7 +41,7 @@ public class UserQuestionnaire {
     public Long getId() {
         return id;
     }
-    
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -55,12 +54,12 @@ public class UserQuestionnaire {
         this.user = user;
     }
 
-    public List<Question> getQuestions() {
-        return questions;
+    public List<Question> getSelectedQuestions() {
+        return selectedQuestions;
     }
 
-    public void setQuestions(List<Question> questions) {
-        this.questions = questions;
+    public void setSelectedQuestions(List<Question> selectedQuestions) {
+        this.selectedQuestions = selectedQuestions;
     }
 
     public LocalDateTime getCreatedAt() {
