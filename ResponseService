@@ -18,37 +18,38 @@ public class ResponseService {
     private ResponseRepository responseRepository;
 
     @Autowired
-    private UserRepository userRepository;  // Add this to your service class
+    private UserRepository userRepository;
 
-    
     @Autowired
     private QuestionRepository questionRepository;
 
-    // Method to submit a response
-    public void submitResponse(Long questionId, Long userId, String answer, int score) {
-        // Retrieve the Question entity by its ID
+    // Method to submit a response and check correctness
+    public Response submitResponse(Long questionId, Long userId, String answer) {
+        // Retrieve the Question entity
         Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID: " + questionId));
 
-        // Retrieve the User entity by its ID
+        // Retrieve the User entity
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
 
-        // Create a new Response entity
+        // Check if the answer is correct
+        boolean isCorrect = answer.trim().equalsIgnoreCase(question.getCorrectAnswer());
+        int score = isCorrect ? question.getScore() : 0;  // ✅ Assign score based on correctness
+
+        // Create and save the response
         Response response = new Response();
-        response.setQuestion(question);  // Setting the whole Question entity
-        response.setUser(user);          // Set the User entity directly, not just userId
+        response.setQuestion(question);
+        response.setUser(user);
         response.setAnswer(answer);
         response.setScore(score);
         response.setTimestamp(LocalDateTime.now());
 
-        // Save the Response entity
-        responseRepository.save(response);  // Use the save method to store the response
+        return responseRepository.save(response);
     }
 
-
-    // Optionally, if you want to expose saveResponse for other uses:
+    // Method to save a response directly (if needed)
     public Response saveResponse(Response response) {
-        return responseRepository.save(response); // This will save the response directly
+        return responseRepository.save(response);
     }
 }
