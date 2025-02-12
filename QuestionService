@@ -2,30 +2,22 @@ package com.example.service;
 
 import com.example.model.Question;
 import com.example.model.QuestionType;
+import com.example.model.SecurityControl;
 import com.example.repository.QuestionRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.repository.SecurityControlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
 @Service
-public class QuestionService {   
-
-    private static final String BASE_TRIVIA_API_URL = "https://opentdb.com/api.php?amount=%d&category=18&type=multiple";
-
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+public class QuestionService {
 
     @Autowired
     private QuestionRepository questionRepository;
 
-    public QuestionService() {
-        this.restTemplate = new RestTemplate();
-        this.objectMapper = new ObjectMapper();
-    }
+    @Autowired
+    private SecurityControlRepository securityControlRepository;
 
     public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
         List<Map<String, Object>> questions = new ArrayList<>();
@@ -33,100 +25,55 @@ public class QuestionService {
         // Fetch security-based questions from MySQL database
         List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
         for (Question sq : securityQuestions) {
-            if (sq.getQuestionType() == QuestionType.TRUE_FALSE || sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                Map<String, Object> questionData = new HashMap<>();
-                questionData.put("id", sq.getId());
-                questionData.put("question", sq.getText());
-                questionData.put("questionType", sq.getQuestionType().toString());
+            Map<String, Object> questionData = new HashMap<>();
+            questionData.put("id", sq.getId());
+            questionData.put("question", sq.getText());
+            questionData.put("questionType", sq.getQuestionType().toString());
+            questionData.put("category", sq.getCategory());
+            questionData.put("controlCategory", sq.getControlCategory().getName());
 
-                // Handle TRUE_FALSE questions
-                if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
-                    questionData.put("options", List.of("True", "False"));
-                }
-                // Handle MULTIPLE_CHOICE questions
-                else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                    List<String> options = extractOptions(sq.getOptions());
-                    if (!options.isEmpty()) {
-                        questionData.put("options", options);
-                    } else {
-                        continue; // Skip questions without answer options
-                    }
-                }
-                questions.add(questionData);
+            // Handle TRUE_FALSE questions
+            if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
+                questionData.put("options", List.of("True", "False"));
             }
-        }
-
-        // Fetch computing questions from API if not enough questions exist
-        int apiQuestionsNeeded = 15 - questions.size();
-        if (apiQuestionsNeeded > 0) {
-            String apiUrl = String.format(BASE_TRIVIA_API_URL, apiQuestionsNeeded) + "&difficulty=" + mapRoleToDifficulty(role, difficulty);
-            fetchQuestionsFromAPI(apiUrl, questions);
+            // Handle MULTIPLE_CHOICE questions
+            else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                List<String> options = extractOptions(sq);
+                if (!options.isEmpty()) {
+                    questionData.put("options", options);
+                } else {
+                    continue; // Skip questions without answer options
+                }
+            }
+            questions.add(questionData);
         }
 
         Collections.shuffle(questions);
         return questions;
     }
 
-    // Extracts options from JSON safely
-    private List<String> extractOptions(Object options) {
+    // Extracts options from Question entity safely
+    private List<String> extractOptions(Question question) {
         List<String> extractedOptions = new ArrayList<>();
-        if (options instanceof JsonNode) {
-            JsonNode jsonOptions = (JsonNode) options;
-            for (JsonNode option : jsonOptions) {
-                extractedOptions.add(option.asText());
+        if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+            // Assuming options are stored as a comma-separated string in the DB
+            String optionsStr = question.getCategory(); // Change to the correct field where options are stored
+            if (optionsStr != null) {
+                extractedOptions = Arrays.asList(optionsStr.split(","));
             }
-        } else if (options instanceof List) {
-            extractedOptions = (List<String>) options;
         }
         return extractedOptions;
     }
 
-    // Fetches additional questions from the Trivia API
-    private void fetchQuestionsFromAPI(String apiUrl, List<Map<String, Object>> questions) {
-        try {
-            String response = restTemplate.getForObject(apiUrl, String.class);
-            JsonNode jsonNode = objectMapper.readTree(response);
-            JsonNode results = jsonNode.get("results");
-
-            for (JsonNode result : results) {
-                Map<String, Object> questionData = new HashMap<>();
-                questionData.put("question", result.get("question").asText());
-
-                List<String> options = new ArrayList<>();
-                result.get("incorrect_answers").forEach(answer -> options.add(answer.asText()));
-                options.add(result.get("correct_answer").asText());
-
-                Collections.shuffle(options);
-
-                if (!options.isEmpty()) {
-                    questionData.put("options", options);
-                    questionData.put("correctAnswer", result.get("correct_answer").asText());
-                    questionData.put("questionType", "MULTIPLE_CHOICE");
-                    questions.add(questionData);
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("Trivia API fetch error: " + e.getMessage());
+    // Get all questions by security control category
+    public List<Question> getQuestionsByControlCategory(String categoryName) {
+        SecurityControl controlCategory = securityControlRepository.findByName(categoryName);
+        if (controlCategory == null) {
+            return new ArrayList<>(); // Return empty list if category doesn't exist
         }
-    }
-
-    // Maps the role to a difficulty level for the API
-    private String mapRoleToDifficulty(String role, String difficulty) {
-        if (difficulty != null && !difficulty.isEmpty()) {
-            return difficulty.toLowerCase(); // Convert user selection to API format
-        }
-
-        Map<String, String> roleToDifficultyMap = Map.of(
-                "developer", "medium",
-                "analyst", "hard",
-                "manager", "easy"
-        );
-
-        return roleToDifficultyMap.getOrDefault(role.toLowerCase(), "medium");
+        return questionRepository.findByControlCategory(controlCategory);
     }
 }
-
-
 
 
 
