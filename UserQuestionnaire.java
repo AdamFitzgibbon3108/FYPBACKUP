@@ -16,35 +16,54 @@ public class UserQuestionnaire {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_questionnaire_questions",
         joinColumns = @JoinColumn(name = "user_questionnaire_id"),
         inverseJoinColumns = @JoinColumn(name = "question_id")
     )
-    private List<Question> selectedQuestions;
+    private List<Question> questions;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     // Constructors
-    public UserQuestionnaire() {}
+    public UserQuestionnaire() {
+        this.createdAt = LocalDateTime.now();
+    }
 
-    public UserQuestionnaire(User user, List<Question> selectedQuestions) {
+    public UserQuestionnaire(User user, List<Question> questions) {
         this.user = user;
-        this.selectedQuestions = selectedQuestions;
+        this.questions = questions;
         this.createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
+    public User getUser() {
+        return user;
+    }
 
-    public List<Question> getSelectedQuestions() { return selectedQuestions; }
-    public void setSelectedQuestions(List<Question> selectedQuestions) { this.selectedQuestions = selectedQuestions; }
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public List<Question> getQuestions() {
+        return questions;
+    }
+
+    public void setQuestions(List<Question> questions) {
+        this.questions = questions;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }
