@@ -1,13 +1,6 @@
 package com.example.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "questions")
@@ -20,8 +13,12 @@ public class Question {
     @Column(name = "question_text", nullable = false)
     private String text;
 
-    @Column(name = "control_category")
-    private String controlCategory;
+    @Column(name = "category")
+    private String category;
+
+    @ManyToOne
+    @JoinColumn(name = "control_category", referencedColumnName = "id")
+    private SecurityControl controlCategory;
 
     @Column(name = "framework")
     private String framework;
@@ -39,8 +36,21 @@ public class Question {
     @Column(name = "question_type", nullable = false)
     private QuestionType questionType; // Enum: TRUE_FALSE, MULTIPLE_CHOICE
 
-    // Getters and Setters
+    // Constructors
+    public Question() {}
 
+    public Question(String text, String category, SecurityControl controlCategory, String framework, String difficulty, Integer score, String role, QuestionType questionType) {
+        this.text = text;
+        this.category = category;
+        this.controlCategory = controlCategory;
+        this.framework = framework;
+        this.difficulty = difficulty;
+        this.score = score;
+        this.role = role;
+        this.questionType = questionType;
+    }
+
+    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -57,11 +67,19 @@ public class Question {
         this.text = text;
     }
 
-    public String getControlCategory() {
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public SecurityControl getControlCategory() {
         return controlCategory;
     }
 
-    public void setControlCategory(String controlCategory) {
+    public void setControlCategory(SecurityControl controlCategory) {
         this.controlCategory = controlCategory;
     }
 
@@ -104,9 +122,5 @@ public class Question {
     public void setQuestionType(QuestionType questionType) {
         this.questionType = questionType;
     }
-
-	public Object getOptions() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
+
