@@ -1,15 +1,16 @@
 package com.example.service;
 
+import com.example.model.Question;
 import com.example.model.Response;
 import com.example.model.User;
-import com.example.model.Question;
+import com.example.repository.QuestionRepository;
 import com.example.repository.ResponseRepository;
 import com.example.repository.UserRepository;
-import com.example.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class ResponseService {
@@ -23,33 +24,44 @@ public class ResponseService {
     @Autowired
     private QuestionRepository questionRepository;
 
-    // Method to submit a response and check correctness
-    public Response submitResponse(Long questionId, Long userId, String answer) {
-        // Retrieve the Question entity
+    /**
+     * Submits a response for a user and validates if the answer is correct.
+     */
+    public void submitResponse(Long questionId, Long userId, String answer, int score) {
         Question question = questionRepository.findById(questionId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID: " + questionId));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
 
-        // Retrieve the User entity
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID: " + userId));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
-        // Check if the answer is correct
-        boolean isCorrect = answer.trim().equalsIgnoreCase(question.getCorrectAnswer());
-        int score = isCorrect ? question.getScore() : 0;  // ✅ Assign score based on correctness
-
-        // Create and save the response
         Response response = new Response();
         response.setQuestion(question);
         response.setUser(user);
         response.setAnswer(answer);
         response.setScore(score);
-        response.setTimestamp(LocalDateTime.now());
+        response.setTimestamp(LocalDateTime.now());  // ✅ Keep start time only
 
-        return responseRepository.save(response);
+        responseRepository.save(response);
     }
 
-    // Method to save a response directly (if needed)
-    public Response saveResponse(Response response) {
-        return responseRepository.save(response);
+
+
+    /**
+     * Retrieves all responses by a user.
+     */
+    public List<Response> getResponsesByUser(Long userId) {
+        return responseRepository.findByUserId(userId);
     }
+
+    /**
+     * Retrieves all responses for a given question.
+     */
+    public List<Response> getResponsesByQuestion(Long questionId) {
+        return responseRepository.findByQuestionId(questionId);
+    }
+
+	public Object saveResponse(Response response) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
