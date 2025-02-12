@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +50,12 @@ public class UserQuestionnaireService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Question not found with ID: " + questionId));
 
-        questionnaire.getQuestions().add(question);
+        // Ensure list is initialized before adding questions
+        if (questionnaire.getSelectedQuestions() == null) {
+            questionnaire.setSelectedQuestions(new ArrayList<>());
+        }
+
+        questionnaire.getSelectedQuestions().add(question);
         userQuestionnaireRepository.save(questionnaire);
     }
 
@@ -65,7 +71,7 @@ public class UserQuestionnaireService {
      */
     public List<Question> getQuestionsInUserQuestionnaire(Long questionnaireId) {
         Optional<UserQuestionnaire> questionnaire = userQuestionnaireRepository.findById(questionnaireId);
-        return questionnaire.map(UserQuestionnaire::getQuestions).orElseThrow(() -> 
+        return questionnaire.map(UserQuestionnaire::getSelectedQuestions).orElseThrow(() -> 
                 new IllegalArgumentException("Questionnaire not found with ID: " + questionnaireId));
     }
 }
