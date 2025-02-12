@@ -34,10 +34,16 @@ public class Response {
     @Column(nullable = false)
     private String difficulty;
 
+    @Column(nullable = false)
+    private LocalDateTime startTime;
+
+    @Column(nullable = false)
+    private LocalDateTime endTime;
+
     // Default constructor
     public Response() {}
 
-    public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String difficulty) {
+    public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String difficulty, LocalDateTime startTime, LocalDateTime endTime) {
         this.question = question;
         this.user = user;
         this.answer = answer;
@@ -45,6 +51,8 @@ public class Response {
         this.timestamp = timestamp;
         this.role = role;
         this.difficulty = difficulty;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     // Getters and Setters
@@ -71,5 +79,11 @@ public class Response {
 
     public String getDifficulty() { return difficulty; }
     public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
 }
 
