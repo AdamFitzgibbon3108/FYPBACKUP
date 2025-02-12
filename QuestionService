@@ -19,10 +19,14 @@ public class QuestionService {
     @Autowired
     private SecurityControlRepository securityControlRepository;
 
+    /**
+     * Fetches questions by role and difficulty.
+     * Ensures questions are randomly shuffled for variety.
+     */
     public List<Map<String, Object>> getQuestionsForRole(String role, String difficulty) {
         List<Map<String, Object>> questions = new ArrayList<>();
 
-        // Fetch security-based questions from MySQL database
+        // Fetch security-based questions from the database
         List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
         for (Question sq : securityQuestions) {
             Map<String, Object> questionData = new HashMap<>();
@@ -30,19 +34,24 @@ public class QuestionService {
             questionData.put("question", sq.getText());
             questionData.put("questionType", sq.getQuestionType().toString());
             questionData.put("category", sq.getCategory());
+            questionData.put("framework", sq.getFramework());
+            questionData.put("difficulty", sq.getDifficulty());
+            questionData.put("score", sq.getScore());
+            questionData.put("role", sq.getRole());
             questionData.put("controlCategory", sq.getControlCategory().getName());
 
-            // Handle TRUE_FALSE questions
+            // Include correct answer for internal validation (not exposed to user)
+            questionData.put("correctAnswer", sq.getCorrectAnswer());
+
+            // Handle question options
             if (sq.getQuestionType() == QuestionType.TRUE_FALSE) {
                 questionData.put("options", List.of("True", "False"));
-            }
-            // Handle MULTIPLE_CHOICE questions
-            else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+            } else if (sq.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
                 List<String> options = extractOptions(sq);
                 if (!options.isEmpty()) {
                     questionData.put("options", options);
                 } else {
-                    continue; // Skip questions without answer options
+                    continue; // Skip questions without options
                 }
             }
             questions.add(questionData);
@@ -52,20 +61,24 @@ public class QuestionService {
         return questions;
     }
 
-    // Extracts options from Question entity safely
+    /**
+     * Extracts multiple-choice options from the database safely.
+     * Assumes options are stored in a separate column, formatted as "option1,option2,option3,option4".
+     */
     private List<String> extractOptions(Question question) {
         List<String> extractedOptions = new ArrayList<>();
         if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-            // Assuming options are stored as a comma-separated string in the DB
-            String optionsStr = question.getCategory(); // Change to the correct field where options are stored
-            if (optionsStr != null) {
+            String optionsStr = question.getOptions(); // Assuming `options` is stored in the database
+            if (optionsStr != null && !optionsStr.isEmpty()) {
                 extractedOptions = Arrays.asList(optionsStr.split(","));
             }
         }
         return extractedOptions;
     }
 
-    // Get all questions by security control category
+    /**
+     * Fetches all questions belonging to a given security control category.
+     */
     public List<Question> getQuestionsByControlCategory(String categoryName) {
         SecurityControl controlCategory = securityControlRepository.findByName(categoryName);
         if (controlCategory == null) {
@@ -73,8 +86,11 @@ public class QuestionService {
         }
         return questionRepository.findByControlCategory(controlCategory);
     }
+
+    /**
+     * Fetches a single question by ID.
+     */
+    public Optional<Question> getQuestionById(Long questionId) {
+        return questionRepository.findById(questionId);
+    }
 }
-
-
-
-
