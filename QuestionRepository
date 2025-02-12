@@ -1,6 +1,7 @@
 package com.example.repository;
 
 import com.example.model.Question;
+import com.example.model.SecurityControl;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -10,7 +11,9 @@ import java.util.List;
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
-  
     @Query(value = "SELECT * FROM questions WHERE role = ?1 AND difficulty = ?2 ORDER BY RAND() LIMIT 15", nativeQuery = true)
     List<Question> findByRoleAndDifficulty(String role, String difficulty);
+
+    // Fetch questions by Security Control category
+    List<Question> findByControlCategory(SecurityControl controlCategory);
 }
