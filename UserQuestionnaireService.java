@@ -10,9 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
 
 @Service
 public class UserQuestionnaireService {
@@ -27,16 +27,20 @@ public class UserQuestionnaireService {
     private QuestionRepository questionRepository;
 
     /**
-     * Creates a new User Questionnaire for a specific user by username.
+     * Creates a new User Questionnaire for a specific user by username, with selected questions.
      */
-    public UserQuestionnaire createUserQuestionnaire(String username) {
+    public UserQuestionnaire createUserQuestionnaire(String username, List<Long> selectedQuestionIds) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new IllegalArgumentException("User not found with username: " + username);
         }
 
+        // Retrieve questions from IDs
+        List<Question> selectedQuestions = questionRepository.findAllById(selectedQuestionIds);
+
         UserQuestionnaire userQuestionnaire = new UserQuestionnaire();
         userQuestionnaire.setUser(user);
+        userQuestionnaire.setSelectedQuestions(selectedQuestions); // Store selected questions
 
         return userQuestionnaireRepository.save(userQuestionnaire);
     }
@@ -67,12 +71,12 @@ public class UserQuestionnaireService {
             questionnaire.setSelectedQuestions(new ArrayList<>());
         }
 
-        if (questionnaire.getSelectedQuestions().contains(question)) {
+        if (!questionnaire.getSelectedQuestions().contains(question)) {
+            questionnaire.getSelectedQuestions().add(question);
+            userQuestionnaireRepository.save(questionnaire);
+        } else {
             throw new IllegalArgumentException("Question already exists in the questionnaire.");
         }
-
-        questionnaire.getSelectedQuestions().add(question);
-        userQuestionnaireRepository.save(questionnaire);
     }
 
     /**
@@ -86,7 +90,7 @@ public class UserQuestionnaireService {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Question not found with ID: " + questionId));
 
-        if (questionnaire.getSelectedQuestions() != null) {
+        if (questionnaire.getSelectedQuestions() != null && questionnaire.getSelectedQuestions().contains(question)) {
             questionnaire.getSelectedQuestions().remove(question);
             userQuestionnaireRepository.save(questionnaire);
         }
