@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Questionnaire Selection</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <h1>Select Your Questionnaire</h1>
+
+    <!-- Role & Category-Based Selection -->
+    <form th:action="@{/questionnaire/start}" method="post">
+        <label for="selectedRole">Choose Your Role:</label>
+        <select name="selectedRole" id="selectedRole">
+            <option value="Developer">Developer</option>
+            <option value="Analyst">Analyst</option>
+            <option value="Manager">Manager</option>
+        </select>
+
+        <label for="selectedCategory">Choose a Security Category:</label>
+        <select name="selectedCategory" id="selectedCategory">
+            <option value="Threat Intelligence">Threat Intelligence</option>
+            <option value="Cryptography">Cryptography</option>
+            <option value="Risk Management">Risk Management</option>
+        </select>
+
+        <button type="submit">Generate Role-Based Quiz</button>
+    </form>
+
+    <hr>
+
+    <!-- Manual Question Selection -->
+    <h2>Create Custom Questionnaire</h2>
+    <form th:action="@{/questionnaire/custom}" method="post">
+        <div th:each="question : ${allQuestions}">
+            <input type="checkbox" name="selectedQuestions" th:value="${question.id}">
+            <label th:text="${question.text}"></label><br>
+        </div>
+        <button type="submit">Create Custom Questionnaire</button>
+    </form>
+    
+    <hr>
+
+    <a href="/dashboard">Back to Dashboard</a>
+</body>
+</html>
