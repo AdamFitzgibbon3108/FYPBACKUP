@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.model.Question;
+import com.example.model.QuestionType;
 import com.example.model.Response;
 import com.example.model.User;
 import com.example.service.QuestionService;
@@ -13,9 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -34,7 +33,8 @@ public class QuestionController {
     private QuestionService questionService;
 
     /**
-     * Fetch all questions for a given category
+     * Fetch all questions for a given category.
+     * Allows users to select questions based on specific security categories.
      */
     @GetMapping("/category/{category}")
     public List<Question> getQuestionsByCategory(@PathVariable String category) {
@@ -42,32 +42,78 @@ public class QuestionController {
     }
 
     /**
-     * Start a questionnaire by fetching questions based on role and difficulty.
+     * Start a questionnaire by fetching questions based on role and category.
+     * Ensures structured question data is returned as a list of maps.
      */
-    @PostMapping("/start")
+    @GetMapping("/start")
     public List<Map<String, Object>> startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
-                                                        @RequestParam(value = "selectedDifficulty", required = false) String selectedDifficulty) {
-        return questionService.getQuestionsForRole(selectedRole, selectedDifficulty);
+                                                        @RequestParam(value = "selectedCategory", required = false) String selectedCategory) {
+        List<Question> questions = questionService.getQuestionsByRoleAndCategory(selectedRole, selectedCategory);
+
+        // Convert List<Question> to List<Map<String, Object>>
+        List<Map<String, Object>> questionList = new ArrayList<>();
+        for (Question question : questions) {
+            Map<String, Object> questionData = new HashMap<>();
+            questionData.put("id", question.getId());
+            questionData.put("question", question.getText());
+            questionData.put("questionType", question.getQuestionType().toString());
+            questionData.put("category", question.getCategory());
+            questionData.put("framework", question.getFramework());
+            questionData.put("difficulty", question.getDifficulty());
+            questionData.put("score", question.getScore());
+            questionData.put("role", question.getRole());
+
+            // Ensure control category is not null before accessing
+            if (question.getControlCategory() != null) {
+                questionData.put("controlCategory", question.getControlCategory().getName());
+            } else {
+                questionData.put("controlCategory", "Unknown");
+            }
+
+            // Handle question options
+            if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
+                questionData.put("options", List.of("True", "False"));
+            } else if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                List<String> options = extractOptions(question);
+                if (!options.isEmpty()) {
+                    questionData.put("options", options);
+                }
+            }
+
+            questionList.add(questionData);
+        }
+
+        return questionList;
     }
 
     /**
      * Submit responses for a questionnaire.
+     * Ensures user responses are properly recorded in the database.
      */
     @PostMapping("/submit")
-    public String submitQuestionnaire(@RequestParam Map<String, String> responses,
-                                      @RequestParam("selectedRole") String selectedRole,
-                                      @RequestParam("selectedDifficulty") String selectedDifficulty) {
+    public Map<String, String> submitQuestionnaire(@RequestBody Map<String, String> requestBody) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
+        // Retrieve user
         Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username));
         if (userOptional.isEmpty()) {
-            return "Error: User not found!";
+            return Collections.singletonMap("error", "User not found!");
+        }
+        User user = userOptional.get();
+
+        // Retrieve role and category from request body
+        String selectedRole = requestBody.get("selectedRole");
+        String selectedCategory = requestBody.get("selectedCategory");
+
+        if (selectedRole == null || selectedCategory == null) {
+            return Collections.singletonMap("error", "Missing role or category.");
         }
 
-        User user = userOptional.get(); // Retrieve the logged-in user
+        // Process user responses
+        List<Response> savedResponses = new ArrayList<>();
 
-        for (Map.Entry<String, String> entry : responses.entrySet()) {
+        for (Map.Entry<String, String> entry : requestBody.entrySet()) {
             if (entry.getKey().startsWith("question_")) {
                 try {
                     Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
@@ -81,16 +127,33 @@ public class QuestionController {
                         response.setAnswer(answer);
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
-                        response.setDifficulty(selectedDifficulty);
-                        response.setScore(0); // Ensure score is stored properly
+                        response.setDifficulty(selectedCategory);
+                        response.setScore(0); // Placeholder, update later when scoring logic is added
 
                         responseRepository.save(response);
+                        savedResponses.add(response);
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Warning: Could not parse question ID: " + entry.getKey());
                 }
             }
         }
-        return "Responses submitted successfully!";
+
+        // Return success response
+        return Collections.singletonMap("message", "Responses submitted successfully!");
+    }
+
+    /**
+     * Extracts multiple-choice options from the database safely.
+     * Assumes options are stored as a comma-separated string.
+     */
+    private List<String> extractOptions(Question question) {
+        if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+            String optionsStr = question.getOptions();
+            if (optionsStr != null && !optionsStr.isEmpty()) {
+                return Arrays.asList(optionsStr.split(","));
+            }
+        }
+        return Collections.emptyList();
     }
 }
