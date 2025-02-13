@@ -24,4 +24,19 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
      * Fetches all questions by category and framework.
      */
     List<Question> findByCategoryAndFramework(String category, String framework);
+
+    /**
+     * Fetches questions by role and category (NEW METHOD)
+     */
+    List<Question> findByRoleAndCategory(String role, String category);
+
+    /**
+     * Fetches all questions by category (NEW METHOD)
+     */
+    List<Question> findByCategory(String category);
 }
+
+
+
+
+
