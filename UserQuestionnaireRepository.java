@@ -13,3 +13,4 @@ public interface UserQuestionnaireRepository extends JpaRepository<UserQuestionn
 
 	List<UserQuestionnaire> findByUserId(Long userId);
 }
+
