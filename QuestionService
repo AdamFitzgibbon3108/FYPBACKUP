@@ -55,6 +55,16 @@ public class QuestionService {
     public List<Question> getQuestionsByCategory(String category) {
         return questionRepository.findByCategory(category);
     }
+    
+    
+    /**
+     * Fetches questions by role only.
+     */  
+    public List<Question> getQuestionsByRole(String role) {
+        return questionRepository.findByRole(role);
+    }
+
+    
 
     /**
      * Fetches all questions belonging to a given security control category.
@@ -72,6 +82,20 @@ public class QuestionService {
      */
     public Optional<Question> getQuestionById(Long questionId) {
         return questionRepository.findById(questionId);
+    }
+
+    /**
+     * Fetches all unique roles from the database.
+     */
+    public List<String> getAllRoles() {
+        return questionRepository.findDistinctRoles();
+    }
+
+    /**
+     * Fetches all unique categories from the database.
+     */
+    public List<String> getAllCategories() {
+        return questionRepository.findDistinctCategories();
     }
 
     /**
