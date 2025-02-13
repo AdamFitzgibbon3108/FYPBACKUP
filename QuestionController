@@ -11,13 +11,15 @@ import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
 
-@RestController
-@RequestMapping("/api/questions")
+@Controller  // ✅ Changed from @RestController to handle Thymeleaf views
+@RequestMapping("/questions")
 public class QuestionController {
 
     @Autowired
@@ -33,64 +35,69 @@ public class QuestionController {
     private QuestionService questionService;
 
     /**
+     * Fetch all unique roles from the database.
+     */
+    @GetMapping("/roles")
+    @ResponseBody
+    public List<String> getAllRoles() {
+        return questionService.getAllRoles();
+    }
+
+    /**
+     * Fetch all unique categories from the database.
+     */
+    @GetMapping("/categories")
+    @ResponseBody
+    public List<String> getAllCategories() {
+        return questionService.getAllCategories();
+    }
+
+    /**
      * Fetch all questions for a given category.
-     * Allows users to select questions based on specific security categories.
      */
     @GetMapping("/category/{category}")
+    @ResponseBody
     public List<Question> getQuestionsByCategory(@PathVariable String category) {
         return questionService.getQuestionsByCategory(category);
     }
 
     /**
-     * Start a questionnaire by fetching questions based on role and category.
-     * Ensures structured question data is returned as a list of maps.
+     * Load questionnaire based on role only.
      */
-    @GetMapping("/start")
-    public List<Map<String, Object>> startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
-                                                        @RequestParam(value = "selectedCategory", required = false) String selectedCategory) {
-        List<Question> questions = questionService.getQuestionsByRoleAndCategory(selectedRole, selectedCategory);
+    @GetMapping("/start-role-only")
+    public String startRoleBasedQuestionnaire(@RequestParam("selectedRole") String selectedRole, Model model) {
+        List<Question> questions = questionService.getQuestionsByRole(selectedRole);
 
-        // Convert List<Question> to List<Map<String, Object>>
-        List<Map<String, Object>> questionList = new ArrayList<>();
-        for (Question question : questions) {
-            Map<String, Object> questionData = new HashMap<>();
-            questionData.put("id", question.getId());
-            questionData.put("question", question.getText());
-            questionData.put("questionType", question.getQuestionType().toString());
-            questionData.put("category", question.getCategory());
-            questionData.put("framework", question.getFramework());
-            questionData.put("difficulty", question.getDifficulty());
-            questionData.put("score", question.getScore());
-            questionData.put("role", question.getRole());
+        // Pass data to the Thymeleaf template
+        model.addAttribute("questions", questions);
+        model.addAttribute("selectedRole", selectedRole);
+        model.addAttribute("selectedCategory", "None");
 
-            // Ensure control category is not null before accessing
-            if (question.getControlCategory() != null) {
-                questionData.put("controlCategory", question.getControlCategory().getName());
-            } else {
-                questionData.put("controlCategory", "Unknown");
-            }
-
-            // Handle question options
-            if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
-                questionData.put("options", List.of("True", "False"));
-            } else if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                List<String> options = extractOptions(question);
-                if (!options.isEmpty()) {
-                    questionData.put("options", options);
-                }
-            }
-
-            questionList.add(questionData);
-        }
-
-        return questionList;
+        return "questionnaire"; // ✅ Ensure there's a `questionnaire.html` template in `templates/`
     }
 
     /**
-     * Submit responses for a questionnaire.
-     * Ensures user responses are properly recorded in the database.
+     * Load questionnaire based on role and category.
+     */
+    @GetMapping("/start")
+    public String startQuestionnaire(@RequestParam("selectedRole") String selectedRole,
+                                     @RequestParam(value = "selectedCategory", required = false) String selectedCategory,
+                                     Model model) {
+        List<Question> questions = questionService.getQuestionsByRoleAndCategory(selectedRole, selectedCategory);
+
+        // Pass data to the Thymeleaf template
+        model.addAttribute("questions", questions);
+        model.addAttribute("selectedRole", selectedRole);
+        model.addAttribute("selectedCategory", selectedCategory);
+
+        return "questionnaire"; // ✅ Ensure `questionnaire.html` exists in Thymeleaf templates
+    }
+
+    /**
+     * Handles questionnaire submission.
      */
     @PostMapping("/submit")
+    @ResponseBody
     public Map<String, String> submitQuestionnaire(@RequestBody Map<String, String> requestBody) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
@@ -139,13 +146,11 @@ public class QuestionController {
             }
         }
 
-        // Return success response
         return Collections.singletonMap("message", "Responses submitted successfully!");
     }
 
     /**
      * Extracts multiple-choice options from the database safely.
-     * Assumes options are stored as a comma-separated string.
      */
     private List<String> extractOptions(Question question) {
         if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
