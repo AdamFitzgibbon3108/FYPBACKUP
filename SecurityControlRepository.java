@@ -8,3 +8,4 @@ import org.springframework.stereotype.Repository;
 public interface SecurityControlRepository extends JpaRepository<SecurityControl, Long> {
     SecurityControl findByName(String name);
 }
+
