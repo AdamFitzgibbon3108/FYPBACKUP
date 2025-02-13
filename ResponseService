@@ -25,26 +25,35 @@ public class ResponseService {
     private QuestionRepository questionRepository;
 
     /**
-     * Submits a response for a user and validates if the answer is correct.
+     * Submits a response for a user and automatically assigns a score.
      */
-    public void submitResponse(Long questionId, Long userId, String answer, int score) {
+    public Response submitResponse(Long questionId, Long userId, String answer) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
+        // Check if the answer is correct
+        boolean isCorrect = answer.equalsIgnoreCase(question.getCorrectAnswer());
+        int score = isCorrect ? question.getScore() : 0;  // Assign score based on correctness
+
         Response response = new Response();
         response.setQuestion(question);
         response.setUser(user);
         response.setAnswer(answer);
         response.setScore(score);
-        response.setTimestamp(LocalDateTime.now());  // ✅ Keep start time only
+        response.setTimestamp(LocalDateTime.now()); // ✅ Keep timestamp
 
-        responseRepository.save(response);
+        return responseRepository.save(response);
     }
 
-
+    /**
+     * Saves a response in the database.
+     */
+    public Response saveResponse(Response response) {
+        return responseRepository.save(response);
+    }
 
     /**
      * Retrieves all responses by a user.
@@ -59,9 +68,5 @@ public class ResponseService {
     public List<Response> getResponsesByQuestion(Long questionId) {
         return responseRepository.findByQuestionId(questionId);
     }
-
-	public Object saveResponse(Response response) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }
+
