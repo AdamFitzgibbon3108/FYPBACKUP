@@ -1,82 +1,206 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questionnaire Selection</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background: radial-gradient(circle at center, #141e30, #243b55), url('/images/cybersecurity-grid.png');
+            background-size: cover, contain;
+            background-blend-mode: overlay;
+            color: #ffffff;
+        }
+
+        .header {
+            background: rgba(20, 30, 48, 0.95);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 2px solid #58a6ff;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #58a6ff;
+        }
+
+        .container-box {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: rgba(20, 30, 48, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .label-text {
+            font-size: 1.2rem;
+            color: #cbd5e0;
+        }
+
+        select, button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #58a6ff;
+            color: #ffffff;
+            padding: 0.8rem;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        select:focus, button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        /* ✅ Improved dropdown styling for better visibility */
+        select option {
+            background: rgba(20, 30, 48, 0.95);
+            color: #ffffff;
+            padding: 10px;
+        }
+
+        select option:hover {
+            background: #58a6ff;
+            color: #000000;
+        }
+
+        .recommendation-box {
+            background: rgba(88, 166, 255, 0.2);
+            padding: 10px;
+            border-left: 4px solid #58a6ff;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .btn-custom {
+            padding: 0.8rem 1.2rem;
+            background: linear-gradient(135deg, #58a6ff, #1e90ff);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease;
+            width: 100%;
+        }
+
+        .btn-custom:hover {
+            background: linear-gradient(135deg, #1e90ff, #58a6ff);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(88, 166, 255, 0.4);
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: #cbd5e0;
+            text-align: center;
+        }
+
+        /* ✅ Styled custom questionnaire section */
+        .questionnaire-list {
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #58a6ff;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .question-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #58a6ff;
+        }
+
+    </style>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Fetch roles dynamically
-            fetch("/questions/roles")  // ✅ Fixed API path
-                .then(response => response.json())
-                .then(data => {
-                    let roleDropdown = document.getElementById("selectedRole");
-                    roleDropdown.innerHTML = ""; // Clear existing options
-
-                    // Default option
-                    let defaultOption = document.createElement("option");
-                    defaultOption.value = "";
-                    defaultOption.textContent = "Select Role";
-                    defaultOption.disabled = true;
-                    defaultOption.selected = true;
-                    roleDropdown.appendChild(defaultOption);
-
-                    data.forEach(role => {
-                        let option = document.createElement("option");
-                        option.value = role;
-                        option.textContent = role;
-                        roleDropdown.appendChild(option);
-                    });
-                })
-                .catch(error => console.error("Error fetching roles:", error));
-
-            // Fetch categories dynamically
-            fetch("/questions/categories")  // ✅ Fixed API path
-                .then(response => response.json())
-                .then(data => {
-                    let categoryDropdown = document.getElementById("selectedCategory");
-                    categoryDropdown.innerHTML = ""; // Clear existing options
-                    
-                    // Default option
-                    let defaultOption = document.createElement("option");
-                    defaultOption.value = "";
-                    defaultOption.textContent = "Select Category";
-                    defaultOption.disabled = true;
-                    defaultOption.selected = true;
-                    categoryDropdown.appendChild(defaultOption);
-
-                    // "None" option for role-based selection
-                    let noneOption = document.createElement("option");
-                    noneOption.value = "None";
-                    noneOption.textContent = "None (Role-Based Only)";
-                    categoryDropdown.appendChild(noneOption);
-
-                    data.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        categoryDropdown.appendChild(option);
-                    });
-                })
-                .catch(error => console.error("Error fetching categories:", error));
+            fetchUserRecommendation();
+            fetchRoles();
+            fetchCategories();
         });
 
-        function adjustFormAction(event) {
-            event.preventDefault(); // Prevent form submission
+        function fetchUserRecommendation() {
+            fetch("/survey/recommendation")
+                .then(response => response.json())
+                .then(data => {
+                    let recommendationText = data.recommendedCategory || "No recommendation available";
+                    document.getElementById("recommendedCategory").textContent = recommendationText;
+                })
+                .catch(error => {
+                    console.error("Error fetching recommendation:", error);
+                    document.getElementById("recommendedCategory").textContent = "Error fetching recommendation";
+                });
+        }
 
+        function fetchRoles() {
+            fetch("/questions/roles")
+                .then(response => response.json())
+                .then(data => populateDropdown("selectedRole", data, "Select Role"))
+                .catch(error => console.error("Error fetching roles:", error));
+        }
+
+        function fetchCategories() {
+            fetch("/questions/categories")
+                .then(response => response.json())
+                .then(data => populateDropdown("selectedCategory", ["None", ...data], "Select Category"))
+                .catch(error => console.error("Error fetching categories:", error));
+        }
+
+        function populateDropdown(elementId, options, defaultText) {
+            let dropdown = document.getElementById(elementId);
+            dropdown.innerHTML = "";
+            let defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = defaultText;
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            dropdown.appendChild(defaultOption);
+
+            options.forEach(option => {
+                let opt = document.createElement("option");
+                opt.value = option;
+                opt.textContent = option;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        function adjustFormAction(event) {
+            event.preventDefault();
             let categoryValue = document.getElementById("selectedCategory").value;
             let roleValue = document.getElementById("selectedRole").value;
 
-            // Ensure user selects valid values
             if (!roleValue) {
                 alert("Please select a role.");
                 return;
             }
+
             if (!categoryValue) {
                 alert("Please select a category.");
                 return;
             }
 
-            // Redirect to appropriate URL
             let url = categoryValue === "None"
                 ? `/questions/start-role-only?selectedRole=${encodeURIComponent(roleValue)}`
                 : `/questions/start?selectedRole=${encodeURIComponent(roleValue)}&selectedCategory=${encodeURIComponent(categoryValue)}`;
@@ -86,39 +210,45 @@
     </script>
 </head>
 <body>
-    <h1>Select Your Questionnaire</h1>
+    <div class="header">
+        <h1>Select Your Questionnaire</h1>
+    </div>
 
-    <!-- Role & Category-Based Selection -->
-    <form id="roleCategoryForm" method="get" onsubmit="adjustFormAction(event)">
-        <label for="selectedRole">Choose Your Role:</label>
-        <select name="selectedRole" id="selectedRole">
-            <option>Loading...</option> <!-- Placeholder -->
-        </select>
-
-        <label for="selectedCategory">Choose a Security Category:</label>
-        <select name="selectedCategory" id="selectedCategory">
-            <option>Loading...</option> <!-- Placeholder -->
-        </select>
-
-        <button type="submit">Generate Questionnaire</button>
-    </form>
-
-    <hr>
-
-    <!-- Manual Question Selection -->
-    <h2>Create Custom Questionnaire</h2>
-    <form th:action="@{/questionnaire/custom}" method="post">
-        <div th:each="question : ${allQuestions}">
-            <input type="checkbox" name="selectedQuestions" th:value="${question.id}">
-            <label th:text="${question.text}"></label><br>
+    <div class="container-box">
+        <div class="recommendation-box">
+            <h2>Recommended Security Category: <span id="recommendedCategory" class="loading-text">Loading...</span></h2>
         </div>
-        <button type="submit">Create Custom Questionnaire</button>
-    </form>
-    
-    <hr>
 
-    <a href="/dashboard">Back to Dashboard</a>
+        <form id="roleCategoryForm" method="get" onsubmit="adjustFormAction(event)">
+            <label for="selectedRole" class="label-text">Choose Your Role:</label>
+            <select name="selectedRole" id="selectedRole">
+                <option>Loading...</option>
+            </select>
+
+            <label for="selectedCategory" class="label-text">Choose a Security Category:</label>
+            <select name="selectedCategory" id="selectedCategory">
+                <option>Loading...</option>
+            </select>
+
+            <button type="submit" class="btn-custom mt-3">Generate Questionnaire</button>
+        </form>
+    </div>
+
+    <div class="container-box">
+        <h2>Create Custom Questionnaire</h2>
+        <form th:action="@{/questionnaire/custom}" method="post">
+            <div class="questionnaire-list">
+                <div th:each="question : ${allQuestions}" class="question-item">
+                    <input type="checkbox" class="checkbox" name="selectedQuestions" th:value="${question.id}">
+                    <label th:text="${question.text}"></label>
+                </div>
+            </div>
+            <button type="submit" class="btn-custom mt-3">Create Custom Questionnaire</button>
+        </form>
+    </div>
+
+    <div class="container-box text-center">
+        <a href="/dashboard" class="btn-custom">Back to Dashboard</a>
+    </div>
 </body>
 </html>
-
-
