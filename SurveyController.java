@@ -30,13 +30,19 @@ public class SurveyController {
     private SurveyQuestionOptionsRepository surveyQuestionOptionsRepository;
 
     /**
-     * ✅ Display the survey page with questions and answer choices
+     * ✅ Display the survey page with questions and recommendations.
      */
     @GetMapping("/page")
-    public String showSurveyPage(Model model) {
+    public String showSurveyPage(Model model, Principal principal) {
         logger.info("Rendering survey.html page...");
         List<SurveyQuestion> questions = surveyService.getAllQuestions();
         model.addAttribute("questions", questions);
+
+        // ✅ Fetch and display the user's recommended security categories
+        String username = (principal != null) ? principal.getName() : "Guest";
+        List<String> recommendedCategories = surveyService.getStoredUserRecommendations(username);
+        model.addAttribute("recommendedCategories", recommendedCategories);
+
         return "survey";  // Ensure `survey.html` exists in templates
     }
 
@@ -53,44 +59,52 @@ public class SurveyController {
     }
 
     /**
-     * ✅ Submit survey responses and analyze recommendations
+     * ✅ Submit survey responses, analyze recommendations, and save them
      */
     @PostMapping("/submit")
     @ResponseBody
     public Map<String, Object> submitSurveyResponses(@RequestBody List<SurveyResponse> responses, Principal principal) {
         if (responses.isEmpty()) {
+            logger.warning("No survey responses provided.");
             return Map.of("error", "No survey responses provided.");
         }
 
         String username = (principal != null) ? principal.getName() : "Guest";
         logger.info("Received survey responses from user: " + username + ", count: " + responses.size());
 
-        // Validate & ensure selected options exist
+        // ✅ Validate & ensure selected options exist
         for (SurveyResponse response : responses) {
             if (response.getSelectedOption() == null || response.getSelectedOption().getId() == null) {
+                logger.warning("Survey response is missing a selected option.");
                 return Map.of("error", "Survey response is missing a selected option.");
             }
 
             Optional<SurveyQuestionOptions> selectedOption = surveyQuestionOptionsRepository.findById(response.getSelectedOption().getId());
             if (selectedOption.isEmpty()) {
+                logger.warning("Invalid option selected.");
                 return Map.of("error", "Invalid option selected.");
             }
             response.setSelectedOption(selectedOption.get());
         }
 
-        // Save responses
+        // ✅ Save responses
         surveyService.saveSurveyResponses(responses, username);
         logger.info("Survey responses saved successfully.");
 
-        // Analyze responses to generate recommendations
+        // ✅ Analyze responses to generate recommendations
         List<String> recommendedCategories = surveyService.analyzeResponses(username);
         logger.info("Generated recommendations for user: " + username + " -> " + recommendedCategories);
+
+        // ✅ Save recommendations in the database (as a comma-separated string)
+        if (!recommendedCategories.isEmpty()) {
+            surveyService.updateUserRecommendations(username, recommendedCategories);
+        }
 
         return Map.of("recommendedCategories", recommendedCategories);
     }
 
     /**
-     * ✅ Retrieve stored recommendation for the current user
+     * ✅ Retrieve stored recommendations for the current user
      */
     @GetMapping("/recommendation")
     @ResponseBody
@@ -98,9 +112,10 @@ public class SurveyController {
         String username = (principal != null) ? principal.getName() : "Guest";
         logger.info("Fetching recommendations for user: " + username);
 
-        List<String> recommendedCategories = surveyService.getUserRecommendation(username);
-        logger.info("User " + username + " recommendations: " + recommendedCategories);
+        List<String> recommendedCategories = surveyService.getStoredUserRecommendations(username);
+        logger.info("User " + username + " recommended security categories: " + recommendedCategories);
 
         return Map.of("recommendedCategories", recommendedCategories);
     }
 }
+

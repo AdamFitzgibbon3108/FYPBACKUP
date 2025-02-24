@@ -41,7 +41,7 @@ public class SurveyService {
     public void saveSurveyResponses(List<SurveyResponse> responses, String username) {
         logger.info("Saving survey responses for user: " + username);
 
-        // ✅ Retrieve User
+        // Retrieve User
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
             logger.severe("User not found: " + username);
@@ -57,7 +57,7 @@ public class SurveyService {
                 continue;
             }
 
-            // ✅ Ensure question exists
+            // Ensure question exists
             Optional<SurveyQuestion> questionOpt = questionRepository.findById(response.getSurveyQuestion().getId());
             if (questionOpt.isEmpty()) {
                 logger.warning("Skipping response: Invalid Survey Question ID " + response.getSurveyQuestion().getId());
@@ -65,7 +65,7 @@ public class SurveyService {
             }
             response.setSurveyQuestion(questionOpt.get());
 
-            // ✅ Ensure selected option exists
+            // Ensure selected option exists
             if (response.getSelectedOption() == null || response.getSelectedOption().getId() == null) {
                 logger.warning("Skipping response: Missing Selected Option");
                 continue;
@@ -82,7 +82,7 @@ public class SurveyService {
             validResponses.add(response);
         }
 
-        // ✅ Save only valid responses
+        // Save only valid responses
         if (!validResponses.isEmpty()) {
             responseRepository.saveAll(validResponses);
             logger.info("Survey responses saved successfully for user: " + username);
@@ -105,24 +105,50 @@ public class SurveyService {
 
         Map<String, Integer> categoryScores = new HashMap<>();
         for (SurveyResponse response : responses) {
-            String answer = response.getResponse().toLowerCase();
+            String answer = response.getSelectedOption().getOptionValue().toLowerCase();
             Set<String> categories = mapResponseToCategories(answer);
             for (String category : categories) {
                 categoryScores.put(category, categoryScores.getOrDefault(category, 0) + 1);
             }
         }
 
-        logger.info("Category Scores: " + categoryScores);
         List<String> recommendations = getTopCategories(categoryScores);
-        userRecommendations.put(username, recommendations);
+        logger.info("Generated recommendations for user: " + username + " -> " + recommendations);
+
+        // ✅ Store multiple recommendations as a comma-separated string in the database
+        updateUserRecommendations(username, recommendations);
+
         return recommendations;
     }
 
     /**
-     * Retrieve stored recommendations for a user.
+     * ✅ Store multiple recommended security categories in the database.
      */
-    public List<String> getUserRecommendation(String username) {
-        return userRecommendations.getOrDefault(username, List.of("No recommendation available"));
+    public void updateUserRecommendations(String username, List<String> categories) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            String recommendationsString = String.join(",", categories);
+            user.setRecommendedSecurityCategory(recommendationsString);
+            userRepository.save(user);
+            logger.info("Updated recommended security categories for user: " + username + " -> " + recommendationsString);
+        } else {
+            logger.warning("Failed to update recommendations: User not found - " + username);
+        }
+    }
+
+    /**
+     * ✅ Retrieve stored recommendations from the database (multiple categories supported).
+     */
+    public List<String> getStoredUserRecommendations(String username) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isPresent()) {
+            String storedCategories = userOptional.get().getRecommendedSecurityCategory();
+            if (storedCategories != null && !storedCategories.isBlank()) {
+                return Arrays.asList(storedCategories.split(","));
+            }
+        }
+        return List.of("No recommendation available");
     }
 
     /**
@@ -166,3 +192,5 @@ public class SurveyService {
                 .toList();
     }
 }
+
+

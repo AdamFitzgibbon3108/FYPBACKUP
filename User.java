@@ -24,7 +24,7 @@ public class User {
     private boolean surveyCompleted = false;
 
     @Column(nullable = true)
-    private String recommendedSecurityCategory;
+    private String recommendedSecurityCategory; // ✅ Store recommended security category
 
     // ✅ Correctly mapped relationship
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -65,8 +65,14 @@ public class User {
     public List<SurveyResponse> getSurveyResponses() { return surveyResponses; }
     public void setSurveyResponses(List<SurveyResponse> surveyResponses) { this.surveyResponses = surveyResponses; }
 
-	public User orElseThrow(Object object) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", role='" + role + '\'' +
+                ", surveyCompleted=" + surveyCompleted +
+                ", recommendedSecurityCategory='" + recommendedSecurityCategory + '\'' +
+                '}';
+    }
 }
