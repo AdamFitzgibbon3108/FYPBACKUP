@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findByUsername(String username) {
-        return Optional.ofNullable(userRepository.findByUsername(username));
+        return userRepository.findByUsername(username); // ✅ Fixed: No need to wrap it in Optional.ofNullable()
     }
 
     @Override
@@ -64,3 +64,4 @@ public class UserServiceImpl implements UserService {
         }
     }
 }
+

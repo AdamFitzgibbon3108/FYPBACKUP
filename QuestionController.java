@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Controller  // ✅ Changed from @RestController to handle Thymeleaf views
+@Controller  // ✅ Ensure it's a Thymeleaf-compatible controller
 @RequestMapping("/questions")
 public class QuestionController {
 
@@ -73,7 +73,7 @@ public class QuestionController {
         model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("selectedCategory", "None");
 
-        return "questionnaire"; // ✅ Ensure there's a `questionnaire.html` template in `templates/`
+        return "questionnaire"; // ✅ Ensure `questionnaire.html` exists in `templates/`
     }
 
     /**
@@ -90,7 +90,7 @@ public class QuestionController {
         model.addAttribute("selectedRole", selectedRole);
         model.addAttribute("selectedCategory", selectedCategory);
 
-        return "questionnaire"; // ✅ Ensure `questionnaire.html` exists in Thymeleaf templates
+        return "questionnaire"; // ✅ Ensure `questionnaire.html` exists in `templates/`
     }
 
     /**
@@ -103,7 +103,7 @@ public class QuestionController {
         String username = authentication.getName();
 
         // Retrieve user
-        Optional<User> userOptional = Optional.ofNullable(userRepository.findByUsername(username));
+        Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
             return Collections.singletonMap("error", "User not found!");
         }

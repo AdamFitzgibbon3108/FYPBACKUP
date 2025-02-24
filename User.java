@@ -26,6 +26,7 @@ public class User {
     @Column(nullable = true)
     private String recommendedSecurityCategory;
 
+    // ✅ Correctly mapped relationship
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SurveyResponse> surveyResponses;
 
@@ -41,59 +42,31 @@ public class User {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public String getPassword() {
-        return password;
-    }
+    public boolean isSurveyCompleted() { return surveyCompleted; }
+    public void setSurveyCompleted(boolean surveyCompleted) { this.surveyCompleted = surveyCompleted; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public boolean isSurveyCompleted() {
-        return surveyCompleted;
-    }
-
-    public void setSurveyCompleted(boolean surveyCompleted) {
-        this.surveyCompleted = surveyCompleted;
-    }
-
-    public String getRecommendedSecurityCategory() {
-        return recommendedSecurityCategory;
-    }
-
+    public String getRecommendedSecurityCategory() { return recommendedSecurityCategory; }
     public void setRecommendedSecurityCategory(String recommendedSecurityCategory) {
         this.recommendedSecurityCategory = recommendedSecurityCategory;
     }
 
-    public List<SurveyResponse> getSurveyResponses() {
-        return surveyResponses;
-    }
+    public List<SurveyResponse> getSurveyResponses() { return surveyResponses; }
+    public void setSurveyResponses(List<SurveyResponse> surveyResponses) { this.surveyResponses = surveyResponses; }
 
-    public void setSurveyResponses(List<SurveyResponse> surveyResponses) {
-        this.surveyResponses = surveyResponses;
-    }
+	public User orElseThrow(Object object) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
