@@ -42,17 +42,17 @@ public class QuestionnaireSelectionController {
         // Debugging logs
         System.out.println("📌 Received Role: " + role);
         System.out.println("📌 Received Category: " + category);
-        
 
         List<Question> questions = questionService.getQuestionsByRoleAndCategory(role, category);
-        
+
         // Debugging if questions are fetched
-        if (questions.isEmpty()) {
+        if (questions == null || questions.isEmpty()) {
             System.out.println("⚠️ No questions found for Role: " + role + " and Category: " + category);
         } else {
             System.out.println("✅ Questions retrieved: " + questions.size());
             for (Question q : questions) {
-                System.out.println("   - " + q.getText());  // Display question text
+            	System.out.println("   - " + q.getText());
+                                                           // Ensure this matches your Question model
             }
         }
 
@@ -78,4 +78,3 @@ public class QuestionnaireSelectionController {
         return "questionnaire";
     }
 }
-
