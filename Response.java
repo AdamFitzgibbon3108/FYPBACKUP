@@ -31,10 +31,10 @@ public class Response {
     @Column(nullable = false)
     private String role;
 
+  
+
     @Column(nullable = false)
-    private String difficulty;
-
-
+    private String category;
 
 
     // Default constructor
@@ -47,7 +47,7 @@ public class Response {
         this.score = score;
         this.timestamp = timestamp;
         this.role = role;
-        this.difficulty = difficulty;
+       this.category = category;
         
     }
 
@@ -67,14 +67,16 @@ public class Response {
     public int getScore() { return score; }
     public void setScore(int score) { this.score = score; }
 
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    
     public LocalDateTime getTimestamp() { return timestamp; }
     public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
-
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    
+    
 
 }
 

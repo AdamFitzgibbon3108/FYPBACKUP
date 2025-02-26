@@ -102,6 +102,8 @@ public class QuestionController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
+        System.out.println("🔍 Received submission from user: " + username);
+
         // Retrieve user
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
@@ -117,6 +119,8 @@ public class QuestionController {
             return Collections.singletonMap("error", "Missing role or category.");
         }
 
+        System.out.println("📌 Role: " + selectedRole + ", Category: " + selectedCategory);
+
         // Process user responses
         List<Response> savedResponses = new ArrayList<>();
 
@@ -128,37 +132,33 @@ public class QuestionController {
 
                     Optional<Question> questionOptional = questionRepository.findById(questionId);
                     if (questionOptional.isPresent()) {
+                        Question question = questionOptional.get();
+
+                        // Ensure category is properly set
+                        String category = (selectedCategory == null || selectedCategory.isEmpty()) ? question.getCategory() : selectedCategory;
+
                         Response response = new Response();
                         response.setUser(user);
-                        response.setQuestion(questionOptional.get());
+                        response.setQuestion(question);
                         response.setAnswer(answer);
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
-                        response.setDifficulty(selectedCategory);
-                        response.setScore(0); // Placeholder, update later when scoring logic is added
+                        response.setCategory(category); // ✅ Fixed: Using correct setter
+                        response.setScore(0); // Placeholder for scoring
 
                         responseRepository.save(response);
                         savedResponses.add(response);
+
+                        System.out.println("✅ Saved response for question " + questionId);
+                    } else {
+                        System.out.println("⚠️ Warning: Question ID " + questionId + " not found.");
                     }
                 } catch (NumberFormatException e) {
-                    System.out.println("Warning: Could not parse question ID: " + entry.getKey());
+                    System.out.println("❌ Error parsing question ID: " + entry.getKey());
                 }
             }
         }
 
         return Collections.singletonMap("message", "Responses submitted successfully!");
-    }
-
-    /**
-     * Extracts multiple-choice options from the database safely.
-     */
-    private List<String> extractOptions(Question question) {
-        if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-            String optionsStr = question.getOptions();
-            if (optionsStr != null && !optionsStr.isEmpty()) {
-                return Arrays.asList(optionsStr.split(","));
-            }
-        }
-        return Collections.emptyList();
     }
 }

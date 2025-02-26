@@ -247,6 +247,23 @@
             <button type="submit" class="btn-custom mt-3">Create Custom Questionnaire</button>
         </form>
     </div>
+    
+    <div class="container-box">
+        <h2>Submit Questionnaire</h2>
+        <form id="questionnaireForm" method="post" action="/questions/submit">
+            <!-- Hidden fields for role and category -->
+            <input type="hidden" id="selectedRoleHidden" name="selectedRole" th:value="${selectedRole}" />
+            <input type="hidden" id="selectedCategoryHidden" name="selectedCategory" th:value="${selectedCategory}" />
+
+            <div class="questionnaire-list">
+                <div th:each="question : ${allQuestions}" class="question-item">
+                    <input type="checkbox" class="checkbox" name="selectedQuestions" th:value="${question.id}">
+                    <label th:text="${question.text}"></label>
+                </div>
+            </div>
+            <button type="submit" class="btn-custom mt-3">Submit Responses</button>
+        </form>
+    </div>
 
     <div class="container-box text-center">
         <a href="/dashboard" class="btn-custom">Back to Dashboard</a>
