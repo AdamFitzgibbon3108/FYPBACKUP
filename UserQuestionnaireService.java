@@ -102,7 +102,3 @@ public class UserQuestionnaireService {
         return userQuestionnaireRepository.findById(questionnaireId);
     }
 }
-
-
-
-

@@ -40,7 +40,7 @@ public class Response {
     // Default constructor
     public Response() {}
 
-    public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String difficulty) {
+    public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String difficulty, String category) {
         this.question = question;
         this.user = user;
         this.answer = answer;

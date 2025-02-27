@@ -22,6 +22,7 @@ public class SecurityConfig {
                 .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll() // Allow login & register pages
                 .requestMatchers("/survey").permitAll()  // ✅ Allow GET /survey
                 .requestMatchers("/survey/submit").permitAll()  // ✅ Allow POST /survey/submit
+                .requestMatchers("/questions/submit").permitAll()
                 .anyRequest().authenticated() // Protect all other routes
             )
             .formLogin(form -> form

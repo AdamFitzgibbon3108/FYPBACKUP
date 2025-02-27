@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ResponseService {
@@ -44,7 +43,7 @@ public class ResponseService {
         response.setUser(user);
         response.setAnswer(answer);
         response.setScore(score);
-        response.setTimestamp(LocalDateTime.now());
+        response.setTimestamp(LocalDateTime.now()); // ✅ Keep timestamp
 
         return responseRepository.save(response);
     }
@@ -57,21 +56,10 @@ public class ResponseService {
     }
 
     /**
-     * Retrieves all responses by a user (using user ID).
+     * Retrieves all responses by a user.
      */
     public List<Response> getResponsesByUser(Long userId) {
         return responseRepository.findByUserId(userId);
-    }
-
-    /**
-     * ✅ NEW: Retrieves all responses by a username.
-     */
-    public List<Response> getResponsesByUsername(String username) {
-        Optional<User> user = userRepository.findByUsername(username);
-        if (user.isPresent()) {
-            return responseRepository.findByUserId(user.get().getId());
-        }
-        throw new IllegalArgumentException("User not found with username: " + username);
     }
 
     /**
@@ -80,5 +68,11 @@ public class ResponseService {
     public List<Response> getResponsesByQuestion(Long questionId) {
         return responseRepository.findByQuestionId(questionId);
     }
+
+	public List<Response> getResponsesByUsername(String username) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
+
 

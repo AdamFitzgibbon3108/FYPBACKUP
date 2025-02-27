@@ -129,7 +129,7 @@
                 <ul>
                     <li th:each="question, questionStat : ${questions}">
                         <div>
-                            <strong th:text="${question.text}"></strong>
+                            <strong th:text="${questionStat.index + 1} + '. ' + ${question.text}"></strong>
                         </div>
 
                         <!-- TRUE/FALSE Questions -->
@@ -204,6 +204,7 @@
 
 </body>
 </html>
+
 
 
 
