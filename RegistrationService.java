@@ -25,9 +25,10 @@ public class RegistrationService {
      */
     public User registerUser(User user) {
         // Check if the username already exists
-        if (userRepository.findByUsername(user.getUsername()) != null) {
-            throw new IllegalArgumentException("Username already exists!");
-        }
+if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+    throw new IllegalArgumentException("Username already exists!");
+}
+
 
         // Encode the password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
