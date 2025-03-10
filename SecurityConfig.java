@@ -7,9 +7,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableMethodSecurity // ✅ Enables @PreAuthorize in controllers
+@EnableMethodSecurity // ✅ Enables @PreAuthorize in controllers for role-based access
 public class SecurityConfig {
 
     @Bean
@@ -21,17 +22,19 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authorize -> authorize
-                // ✅ Allow open access to login, register, and public static files
+                // ✅ Allow public access to login, register, and static resources (CSS, JS, etc.)
                 .requestMatchers("/login", "/register", "/css/**", "/js/**").permitAll()
+                
+                // ✅ Allow unrestricted access to survey endpoints
                 .requestMatchers("/survey", "/survey/submit", "/questions/submit").permitAll()
-                
-                // ✅ Restrict /admin/** routes to ADMIN role
+
+                // ✅ Restrict /admin/** routes to only ADMIN users
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                
-                // ✅ Allow authenticated users access to user-related operations
+
+                // ✅ Allow authenticated users to access user-related API operations
                 .requestMatchers("/api/users/**").authenticated()
 
-                // ✅ All other routes require authentication
+                // ✅ Restrict all other endpoints to authenticated users
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -45,8 +48,14 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login?logout=true")  // ✅ Redirect after logout
                 .permitAll()
             )
+            .sessionManagement(session -> session
+                .sessionFixation().migrateSession() // ✅ Prevent session fixation attacks
+                .maximumSessions(1) // ✅ Allow only one active session per user
+                .expiredUrl("/login?expired=true") // ✅ Redirect if session expires
+            )
             .csrf().disable(); // ❌ Disabled for now (Enable in production)
 
         return http.build();
     }
 }
+
