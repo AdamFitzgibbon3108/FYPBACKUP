@@ -1,10 +1,12 @@
 package com.example.model;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
-@Table(name = "users") // Ensure table name matches MySQL
+@Table(name = "users")
 public class User {
 
     @Id
@@ -18,25 +20,30 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role;
-
-    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 0")
     private boolean surveyCompleted = false;
 
     @Column(nullable = true)
-    private String recommendedSecurityCategory; // ✅ Store recommended security category
+    private String recommendedSecurityCategory;
 
-    // ✅ Correctly mapped relationship
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SurveyResponse> surveyResponses;
+
+    // ✅ Many-to-Many relationship with Role entity
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
     // Constructors
     public User() {}
 
-    public User(String username, String password, String role) {
+    public User(String username, String password, Set<Role> roles) {
         this.username = username;
         this.password = password;
-        this.role = role;
+        this.roles = roles;
         this.surveyCompleted = false;
         this.recommendedSecurityCategory = null;
     }
@@ -51,9 +58,6 @@ public class User {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
-
     public boolean isSurveyCompleted() { return surveyCompleted; }
     public void setSurveyCompleted(boolean surveyCompleted) { this.surveyCompleted = surveyCompleted; }
 
@@ -65,15 +69,17 @@ public class User {
     public List<SurveyResponse> getSurveyResponses() { return surveyResponses; }
     public void setSurveyResponses(List<SurveyResponse> surveyResponses) { this.surveyResponses = surveyResponses; }
 
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", role='" + role + '\'' +
+                ", roles=" + roles +
                 ", surveyCompleted=" + surveyCompleted +
                 ", recommendedSecurityCategory='" + recommendedSecurityCategory + '\'' +
                 '}';
     }
 }
-

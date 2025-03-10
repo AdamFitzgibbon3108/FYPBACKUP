@@ -39,7 +39,7 @@ public class AdminService {
     @Transactional
     public Questionnaire createQuestionnaire(String title, String description, Long adminId) {
         Optional<User> adminUser = userRepository.findById(adminId);
-        if (adminUser.isPresent() && "ADMIN".equals(adminUser.get().getRole())) {
+        if (adminUser.isPresent() && "ADMIN".equals(adminUser.get().getRoles())) {
             Questionnaire questionnaire = new Questionnaire(title, description, adminUser.get(), null);
             return questionnaireRepository.save(questionnaire);
         } else {

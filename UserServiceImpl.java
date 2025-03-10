@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
 
         existingUser.setUsername(user.getUsername());
         existingUser.setPassword(passwordEncoder.encode(user.getPassword())); // Ensuring password remains hashed
-        existingUser.setRole(user.getRole());
+        existingUser.setRoles(user.getRoles());
 
         User updatedUser = userRepository.save(existingUser);
         System.out.println("✅ User successfully updated with ID: " + updatedUser.getId());

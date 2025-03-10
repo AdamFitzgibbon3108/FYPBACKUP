@@ -21,7 +21,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query("UPDATE User u SET u.recommendedSecurityCategory = :category WHERE u.username = :username")
     void updateRecommendedSecurityCategory(String username, String category);
+
+    // Fetch user along with roles
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username")
+    Optional<User> findByUsernameWithRoles(String username);
 }
+
 
 
 
