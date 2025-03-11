@@ -3,6 +3,7 @@ package com.example.model;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -20,6 +21,12 @@ public class User {
     private String password;
 
     @Column(nullable = false)
+    private boolean active;
+    
+    @Column(nullable = false)
+    private boolean pendingApproval;
+    
+    @Column(nullable = false)
     private boolean surveyCompleted = false;
 
     @Column(nullable = true)
@@ -28,7 +35,6 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SurveyResponse> surveyResponses;
 
-    // ✅ Many-to-Many relationship with Role entity
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
@@ -37,20 +43,27 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Constructors
+    // ✅ Default Constructor
     public User() {}
 
+    // ✅ Constructor with fields
     public User(String username, String password, Set<Role> roles) {
         this.username = username;
         this.password = password;
-        this.roles = roles;
+        this.roles = (roles != null) ? roles : new HashSet<>();
         this.surveyCompleted = false;
         this.recommendedSecurityCategory = null;
     }
 
-    // Getters and Setters
+    // ✅ Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+    
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+    
+    public boolean isPendingApproval() {return pendingApproval;}
+    public void setPendingApproval(boolean pendingApproval) {this.pendingApproval = pendingApproval;}
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -70,7 +83,24 @@ public class User {
     public void setSurveyResponses(List<SurveyResponse> surveyResponses) { this.surveyResponses = surveyResponses; }
 
     public Set<Role> getRoles() { return roles; }
-    public void setRoles(Set<Role> roles) { this.roles = roles; }
+    
+    // ✅ Prevents null roles being assigned
+    public void setRoles(Set<Role> roles) {
+        this.roles = (roles != null) ? roles : new HashSet<>();
+    }
+
+    // ✅ Role Management
+    public void addRole(Role role) {
+        this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
+    }
+
+    public boolean hasRole(String roleName) {
+        return roles.stream().anyMatch(role -> role.getName().equalsIgnoreCase(roleName));
+    }
 
     @Override
     public String toString() {
