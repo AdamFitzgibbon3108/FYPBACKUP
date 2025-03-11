@@ -17,8 +17,6 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-
-
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -38,6 +36,27 @@ public class AdminDashboardController {
         model.addAttribute("pendingUsers", stats.getPendingApprovals());
 
         return "admin-dashboard";
+    }
+
+    // ✅ Manage Questions Page
+    @GetMapping("/questions")
+    public String manageQuestions(Model model) {
+        model.addAttribute("questions", adminService.getAllQuestions());
+        return "manage-questions"; // Ensure this file exists in src/main/resources/templates
+    }
+
+    // ✅ Manage Questionnaires Page (If Needed)
+    @GetMapping("/questionnaires")
+    public String manageQuestionnaires(Model model) {
+        model.addAttribute("questionnaires", adminService.getAllQuestionnaires());
+        return "manage-questionnaires"; // Ensure this file exists in templates
+    }
+
+    // ✅ Manage Users Page
+    @GetMapping("/users")
+    public String manageUsers(Model model) {
+        model.addAttribute("users", adminService.getAllUsers());
+        return "manage-users"; // Ensure this file exists in templates
     }
 
     // ✅ API: Get all questions
@@ -118,6 +137,3 @@ public class AdminDashboardController {
         return ResponseEntity.ok("User deleted successfully.");
     }
 }
-
-
-
