@@ -1,9 +1,8 @@
 package com.example.controller;
 
 import com.example.model.Question;
-import com.example.model.QuestionType;
-import com.example.model.Response;
 import com.example.model.User;
+import com.example.model.Response;
 import com.example.service.QuestionService;
 import com.example.repository.QuestionRepository;
 import com.example.repository.ResponseRepository;
@@ -33,6 +32,15 @@ public class QuestionController {
 
     @Autowired
     private QuestionService questionService;
+
+    /**
+     * Load Manage Questions Page
+     */
+    @GetMapping("/manage")
+    public String manageQuestions(Model model) {
+        model.addAttribute("questions", questionService.getAllQuestions());
+        return "manage-questions"; // ✅ Ensure `manage-questions.html` exists in `templates/`
+    }
 
     /**
      * Fetch all unique roles from the database.
