@@ -10,10 +10,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-@Controller // ✅ Change to @Controller for Thymeleaf support
+@Controller // ✅ Supports Thymeleaf
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')") // ✅ Restrict entire controller to ADMIN role
 public class AdminDashboardController {
@@ -21,14 +22,14 @@ public class AdminDashboardController {
     @Autowired
     private AdminService adminService;
 
-    // ✅ Load Admin Dashboard UI
+    // ✅ Admin Dashboard UI
     @GetMapping("/dashboard")
-    public String adminDashboard(Model model) {
-        model.addAttribute("message", "Welcome, Admin!"); // Example attribute
-        return "admin-dashboard"; // ✅ Loads `admin-dashboard.html`
+    public String adminDashboard(Model model, Principal principal) {
+        model.addAttribute("adminName", principal.getName()); // Display logged-in admin name
+        return "admin-dashboard"; // ✅ Loads admin-dashboard.html
     }
 
-    // ✅ 1. Get all questions (Admin Only)
+    // ✅ API: Get all questions (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/questions")
     public ResponseEntity<List<Question>> getAllQuestions() {
@@ -36,7 +37,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(questions);
     }
 
-    // ✅ 2. Get all questionnaires (Admin Only)
+    // ✅ API: Get all questionnaires (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/questionnaires")
     public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
@@ -44,7 +45,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(questionnaires);
     }
 
-    // ✅ 3. Get a specific questionnaire by ID (Admin Only)
+    // ✅ API: Get a specific questionnaire by ID (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable Long questionnaireId) {
@@ -52,7 +53,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(questionnaire);
     }
 
-    // ✅ 4. Create a new questionnaire (Admin Only)
+    // ✅ API: Create a new questionnaire (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/questionnaires")
     public ResponseEntity<Questionnaire> createQuestionnaire(@RequestBody Map<String, Object> requestData) {
@@ -64,7 +65,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(createdQuestionnaire);
     }
 
-    // ✅ 5. Assign questions to a questionnaire (Admin Only)
+    // ✅ API: Assign questions to a questionnaire (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/questionnaires/{questionnaireId}/assign")
     public ResponseEntity<Questionnaire> assignQuestionsToQuestionnaire(
@@ -75,7 +76,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(updatedQuestionnaire);
     }
 
-    // ✅ 6. Remove questions from a questionnaire (Admin Only)
+    // ✅ API: Remove questions from a questionnaire (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/api/questionnaires/{questionnaireId}/remove")
     public ResponseEntity<Questionnaire> removeQuestionsFromQuestionnaire(
@@ -86,7 +87,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(updatedQuestionnaire);
     }
 
-    // ✅ 7. Delete a questionnaire (Admin Only)
+    // ✅ API: Delete a questionnaire (Admin Only)
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<String> deleteQuestionnaire(@PathVariable Long questionnaireId) {

@@ -10,62 +10,127 @@
             font-family: Arial, sans-serif;
             background-color: #1e293b;
             color: white;
-            text-align: center;
-            padding: 20px;
+            display: flex;
+            height: 100vh;
+            margin: 0;
         }
-        
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background-color: #334155;
+
+        .sidebar {
+            width: 250px;
+            background: #334155;
+            padding: 20px;
+            position: fixed;
+            height: 100%;
+            left: 0;
+            top: 0;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar h2 {
+            color: #58a6ff;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar ul li a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #2563eb;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .sidebar ul li a:hover {
+            background-color: #1d4ed8;
+        }
+
+        .logout {
+            background-color: red !important;
+        }
+
+        .logout:hover {
+            background-color: darkred !important;
+        }
+
+        .main-content {
+            margin-left: 270px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-cards {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #475569;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 200px;
+        }
+
+        .card h3 {
+            margin: 0;
+            color: #58a6ff;
+        }
+
+        .card p {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .activity-log {
+            margin-top: 30px;
+            background: #334155;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        h1 {
+        .activity-log h3 {
             color: #58a6ff;
         }
 
-        ul {
+        .activity-log ul {
             list-style: none;
             padding: 0;
         }
 
-        li {
-            margin: 15px 0;
-        }
-
-        a {
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: bold;
-            color: #ffffff;
-            background-color: #2563eb;
-            padding: 10px 15px;
+        .activity-log ul li {
+            background: #475569;
+            padding: 10px;
+            margin: 5px 0;
             border-radius: 5px;
-            display: inline-block;
-        }
-
-        a:hover {
-            background-color: #1d4ed8;
-        }
-
-        .logout {
-            background-color: red;
-        }
-
-        .logout:hover {
-            background-color: darkred;
         }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>Welcome, Admin!</h1>
-        <p>You have full access to manage the platform.</p>
-
+    <div class="sidebar">
+        <h2>ThreatLens</h2>
         <ul>
             <li><a href="/admin/questions">Manage Questions</a></li>
             <li><a href="/admin/questionnaires">Manage Questionnaires</a></li>
@@ -74,5 +139,33 @@
         </ul>
     </div>
 
+    <div class="main-content">
+        <div class="dashboard-header">
+            <h1>Welcome, Admin!</h1>
+            <p>You have full access to manage the platform.</p>
+        </div>
+
+        <div class="dashboard-cards">
+            <div class="card">
+                <h3>Total Users</h3>
+                <p th:text="${totalUsers}">100</p>
+            </div>
+            <div class="card">
+                <h3>Active Users</h3>
+                <p th:text="${activeUsers}">80</p>
+            </div>
+            <div class="card">
+                <h3>Pending Approvals</h3>
+                <p th:text="${pendingUsers}">5</p>
+            </div>
+        </div>
+
+        <div class="activity-log">
+            <h3>Recent Activity</h3>
+            <ul>
+                <li th:each="log : ${activityLogs}" th:text="${log}">Admin updated a questionnaire</li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
