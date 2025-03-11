@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,6 +50,13 @@ public class QuestionController {
     @ResponseBody
     public List<String> getAllRoles() {
         return questionService.getAllRoles();
+    }
+    
+    @GetMapping("/questionnaire/custom")
+    public String customQuestionnaire(Model model) {
+        List<Question> allQuestions = questionService.getAllQuestions(); // Fetch all questions
+        model.addAttribute("questions", allQuestions); // Pass questions to view
+        return "custom-questionnaire"; // Make sure 'custom-questionnaire.html' exists in templates/
     }
 
     /**
@@ -104,6 +112,7 @@ public class QuestionController {
     /**
      * Handles questionnaire submission.
      */
+    @Transactional
     @PostMapping("/submit")
     @ResponseBody
     public Map<String, String> submitQuestionnaire(@RequestBody Map<String, String> requestBody) {
@@ -154,10 +163,15 @@ public class QuestionController {
                         response.setCategory(category); // ✅ Fixed: Using correct setter
                         response.setScore(0); // Placeholder for scoring
 
-                        responseRepository.save(response);
-                        savedResponses.add(response);
+                        try {
+                            responseRepository.save(response);
+                            savedResponses.add(response);
+                            System.out.println("✅ Saved response for question " + questionId);
+                        } catch (Exception e) {
+                            System.out.println("❌ Error saving response: " + e.getMessage());
+                            e.printStackTrace();
+                        }
 
-                        System.out.println("✅ Saved response for question " + questionId);
                     } else {
                         System.out.println("⚠️ Warning: Question ID " + questionId + " not found.");
                     }
@@ -166,6 +180,10 @@ public class QuestionController {
                 }
             }
         }
+
+        // Debugging: Fetch responses from the DB to verify if they were saved
+        List<Response> allResponses = responseRepository.findByUser(user);
+        System.out.println("🔍 Total Responses in DB for user: " + allResponses.size());
 
         return Collections.singletonMap("message", "Responses submitted successfully!");
     }
