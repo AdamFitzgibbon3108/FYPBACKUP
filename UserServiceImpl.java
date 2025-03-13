@@ -1,37 +1,41 @@
 package com.example.service;
 
+import com.example.model.Role;
 import com.example.model.User;
+import com.example.repository.RoleRepository;
 import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired RoleRepository roleRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public List<User> getAllUsers() {
-        System.out.println("📋 Fetching all users...");
-        return userRepository.findAll();
+        System.out.println("📋 Fetching all users with roles...");
+        return userRepository.findAllWithRoles(); // Ensures roles are loaded properly
     }
 
     @Override
     @Transactional
     public User createUser(User user) {
-        // Convert username to lowercase for uniformity
         String normalizedUsername = user.getUsername().toLowerCase();
         System.out.println("🔍 Checking if username exists: " + normalizedUsername);
 
-        // Check if username already exists
         Optional<User> existingUser = userRepository.findByUsername(normalizedUsername);
         if (existingUser.isPresent()) {
             System.err.println("🚨 User registration blocked: Username already exists -> " + normalizedUsername);
@@ -39,40 +43,56 @@ public class UserServiceImpl implements UserService {
         }
 
         System.out.println("✅ No existing user found, proceeding to save new user: " + normalizedUsername);
-
-        // Debugging: Check if password is being received properly
         System.out.println("🔑 Raw password before saving: " + user.getPassword());
 
-        // Hash the password before saving
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         System.out.println("🔐 Hashed password before saving: " + hashedPassword);
 
         user.setUsername(normalizedUsername);
         user.setPassword(hashedPassword);
 
-        // Save user and force commit
+        // 🔥 Ensure at least a default role is assigned
+        if (user.getRoles().isEmpty()) {
+            Role defaultRole = roleRepository.findByName("USER")  // Fetch the default role
+                    .orElseThrow(() -> new RuntimeException("Default role USER not found in DB"));
+            user.getRoles().add(defaultRole);
+        }
+
+        // Save user
         User savedUser = userRepository.save(user);
         userRepository.flush();  // Ensures transaction commits
 
         System.out.println("✅ User successfully saved with ID: " + savedUser.getId());
-
         return savedUser;
     }
 
+
     @Override
-    public User updateUser(Long id, User user) {
-        System.out.println("🔄 Updating user with ID: " + id);
+    @Transactional
+    public User updateUser(Long id, User updatedUser) {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        existingUser.setUsername(user.getUsername());
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword())); // Ensuring password remains hashed
-        existingUser.setRoles(user.getRoles());
+        existingUser.setUsername(updatedUser.getUsername());
 
-        User updatedUser = userRepository.save(existingUser);
-        System.out.println("✅ User successfully updated with ID: " + updatedUser.getId());
-        return updatedUser;
+        // ✅ Only update the password if it's provided
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+
+        // 🔥 FIX: Ensure roles are managed entities before assigning
+        Set<Role> managedRoles = new HashSet<>();
+        for (Role role : updatedUser.getRoles()) {
+            Role managedRole = roleRepository.findByName(role.getName())
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + role.getName()));
+            managedRoles.add(managedRole);
+        }
+        existingUser.setRoles(managedRoles);
+
+        return userRepository.save(existingUser);
     }
+
+
 
     @Override
     public void deleteUser(Long id) {
