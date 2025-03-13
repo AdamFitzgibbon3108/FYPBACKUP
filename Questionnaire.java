@@ -73,4 +73,3 @@ public class Questionnaire {
         this.userQuestionnaires = userQuestionnaires;
     }
 }
-
