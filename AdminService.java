@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminService {
@@ -116,6 +117,27 @@ public class AdminService {
         userRepository.save(user);
     }
 
+    // ✅ Update user details (Removed setEmail method)
+    @Transactional
+    public User updateUser(Long userId, Map<String, Object> updates) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (updates.containsKey("username")) {
+            String newUsername = (String) updates.get("username");
+            if (newUsername != null && !newUsername.isEmpty()) {
+                user.setUsername(newUsername);
+            }
+        }
+
+        if (updates.containsKey("active")) {
+            user.setActive((Boolean) updates.get("active"));
+        }
+
+        return userRepository.save(user);
+    }
+
+
     // ✅ Delete a user
     @Transactional
     public void deleteUser(Long userId) {
@@ -162,9 +184,19 @@ public class AdminService {
             this.pendingApprovals = pendingApprovals;
         }
 
-        public long getTotalUsers() { return totalUsers; }
-        public long getActiveUsers() { return activeUsers; }
-        public long getPendingApprovals() { return pendingApprovals; }
+        public long getTotalUsers() {
+            return totalUsers;
+        }
+
+        public long getActiveUsers() {
+            return activeUsers;
+        }
+
+        public long getPendingApprovals() {
+            return pendingApprovals;
+        }
     }
 }
+
+
 

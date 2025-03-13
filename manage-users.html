@@ -7,7 +7,22 @@
 </head>
 <body>
     <h1>Manage Users</h1>
-    
+
+    <!-- ✅ Add User Form -->
+    <h2>Add New User</h2>
+    <form id="addUserForm">
+        <input type="text" id="username" placeholder="Username" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <select id="role">
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+        </select>
+        <button type="submit">Add User</button>
+    </form>
+
+    <hr>
+
+    <!-- ✅ Users Table -->
     <table>
         <thead>
             <tr>
@@ -23,7 +38,11 @@
                 <td th:text="${user.id}"></td>
                 <td th:text="${user.username}"></td>
                 <td th:text="${#strings.listJoin(user.roles, ', ')}"></td>
-                <td th:text="${user.active ? 'Yes' : 'No'}"></td>
+                <td>
+                    <button th:attr="data-id=${user.id}" th:onclick="|toggleActive(${user.id})|" 
+                        th:text="${user.active ? 'Deactivate' : 'Activate'}">
+                    </button>
+                </td>
                 <td>
                     <button th:onclick="|editUser(${user.id})|">Edit</button>
                     <button th:onclick="|deleteUser(${user.id})|">Delete</button>
@@ -33,13 +52,39 @@
     </table>
 
     <script>
+        // ✅ Add User
+        document.getElementById('addUserForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            }).then(response => response.ok ? location.reload() : alert("Error adding user"));
+        });
+
+        // ✅ Edit User
         function editUser(id) {
             window.location.href = '/users/edit/' + id;
         }
-        function deleteUser(id) {
-            fetch('/users/delete/' + id, { method: 'DELETE' })
+
+        // ✅ Toggle Active Status
+        function toggleActive(id) {
+            fetch('/api/users/' + id + '/toggle-active', { method: 'POST' })
                 .then(() => location.reload());
+        }
+
+        // ✅ Delete User with Confirmation
+        function deleteUser(id) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                fetch('/api/users/' + id, { method: 'DELETE' })
+                    .then(() => location.reload());
+            }
         }
     </script>
 </body>
 </html>
+

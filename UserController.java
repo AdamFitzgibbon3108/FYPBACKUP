@@ -2,11 +2,9 @@ package com.example.controller;
 
 import com.example.model.User;
 import com.example.service.UserService;
-import com.example.service.RegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.List;
 import java.security.Principal;
@@ -17,9 +15,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired
-    private RegistrationService registrationService;
 
     // ✅ ADMIN-ONLY: Get all users
     @PreAuthorize("hasRole('ADMIN')")
@@ -36,17 +31,11 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    // ✅ PUBLIC: Register a normal user (User Role Assigned)
-    @PostMapping("/register")
-    public RedirectView registerUser(@RequestBody User user) {
-        return registrationService.registerUser(user, "User");
-    }
-
-    // ✅ ADMIN-ONLY: Register a new admin
+    // ✅ ADMIN-ONLY: Create a new user (Admin or Normal User)
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin/register")
-    public RedirectView registerAdmin(@RequestBody User user) {
-        return registrationService.registerAdmin(user);
+    @PostMapping
+    public User createUser(@RequestBody User user) {
+        return userService.createUser(user);
     }
 
     // ✅ ADMIN-ONLY: Update user details

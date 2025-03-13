@@ -42,21 +42,21 @@ public class AdminDashboardController {
     @GetMapping("/questions")
     public String manageQuestions(Model model) {
         model.addAttribute("questions", adminService.getAllQuestions());
-        return "manage-questions"; // Ensure this file exists in src/main/resources/templates
+        return "manage-questions";
     }
 
-    // ✅ Manage Questionnaires Page (If Needed)
+    // ✅ Manage Questionnaires Page
     @GetMapping("/questionnaires")
     public String manageQuestionnaires(Model model) {
         model.addAttribute("questionnaires", adminService.getAllQuestionnaires());
-        return "manage-questionnaires"; // Ensure this file exists in templates
+        return "manage-questionnaires";
     }
 
     // ✅ Manage Users Page
     @GetMapping("/users")
     public String manageUsers(Model model) {
         model.addAttribute("users", adminService.getAllUsers());
-        return "manage-users"; // Ensure this file exists in templates
+        return "manage-users";
     }
 
     // ✅ API: Get all questions
@@ -116,18 +116,26 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
-    // ✅ API: Assign a role to a user
-    @PostMapping("/api/users/{userId}/assign-role")
-    public ResponseEntity<String> assignRoleToUser(@PathVariable Long userId, @RequestParam String role) {
-        adminService.assignRoleToUser(userId, role);
-        return ResponseEntity.ok("Role assigned successfully.");
+    // ✅ API: Update user details
+    @PutMapping("/api/users/{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody Map<String, Object> updates) {
+        User updatedUser = adminService.updateUser(userId, updates);
+        return ResponseEntity.ok(updatedUser);
     }
 
-    // ✅ API: Remove a role from a user
-    @PostMapping("/api/users/{userId}/remove-role")
-    public ResponseEntity<String> removeRoleFromUser(@PathVariable Long userId, @RequestParam String role) {
-        adminService.removeRoleFromUser(userId, role);
-        return ResponseEntity.ok("Role removed successfully.");
+    // ✅ API: Manage user roles (Assign/Remove in a single method)
+    @PostMapping("/api/users/{userId}/roles")
+    public ResponseEntity<String> updateUserRoles(
+            @PathVariable Long userId,
+            @RequestParam String role,
+            @RequestParam boolean assign) {
+        if (assign) {
+            adminService.assignRoleToUser(userId, role);
+            return ResponseEntity.ok("Role assigned successfully.");
+        } else {
+            adminService.removeRoleFromUser(userId, role);
+            return ResponseEntity.ok("Role removed successfully.");
+        }
     }
 
     // ✅ API: Delete a user
@@ -137,3 +145,4 @@ public class AdminDashboardController {
         return ResponseEntity.ok("User deleted successfully.");
     }
 }
+
