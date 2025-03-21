@@ -11,7 +11,11 @@ public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, 
 
     //  Fetch all responses for a given user
     List<SurveyResponse> findByUser_Username(String username);
+
+    // ✅ New method to check if the user already submitted any survey response
+    boolean existsByUserUsername(String username);
 }
+
 
 
 

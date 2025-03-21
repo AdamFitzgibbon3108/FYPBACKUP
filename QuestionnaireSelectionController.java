@@ -1,7 +1,6 @@
 package com.example.controller;
 
 import com.example.model.Question;
-import com.example.model.Questionnaire;
 import com.example.model.UserQuestionnaire;
 import com.example.service.QuestionService;
 import com.example.service.UserQuestionnaireService;
@@ -87,7 +86,7 @@ public class QuestionnaireSelectionController {
 
         System.out.println("✅ Successfully retrieved " + selectedQuestions.size() + " questions for the custom questionnaire.");
 
-        // Create and store the UserQuestionnaire without relying on a QuestionnaireService
+        // ✅ Use the 2-parameter version of createUserQuestionnaire
         UserQuestionnaire userQuestionnaire = userQuestionnaireService.createUserQuestionnaire(username, selectedQuestionIds);
 
         model.addAttribute("questions", selectedQuestions);

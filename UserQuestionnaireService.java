@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.model.Question;
+import com.example.model.Questionnaire;
 import com.example.model.User;
 import com.example.model.UserQuestionnaire;
 import com.example.repository.QuestionRepository;
@@ -40,6 +41,7 @@ public class UserQuestionnaireService {
         UserQuestionnaire userQuestionnaire = new UserQuestionnaire();
         userQuestionnaire.setUser(user);
         userQuestionnaire.setSelectedQuestions(selectedQuestions); // Store selected questions
+       
 
         return userQuestionnaireRepository.save(userQuestionnaire);
     }

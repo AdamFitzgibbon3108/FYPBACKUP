@@ -28,6 +28,14 @@ public class SurveyService {
     private final Map<String, List<String>> userRecommendations = new HashMap<>();
 
     /**
+     * ✅ Check if user has already completed the survey
+     */
+    public boolean hasUserCompletedSurvey(String username) {
+        logger.info("Checking if user has completed survey: " + username);
+        return responseRepository.existsByUserUsername(username);
+    }
+
+    /**
      * Fetch all survey questions.
      */
     public List<SurveyQuestion> getAllQuestions() {
@@ -41,7 +49,6 @@ public class SurveyService {
     public void saveSurveyResponses(List<SurveyResponse> responses, String username) {
         logger.info("Saving survey responses for user: " + username);
 
-        // Retrieve User
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
             logger.severe("User not found: " + username);
@@ -57,7 +64,6 @@ public class SurveyService {
                 continue;
             }
 
-            // Ensure question exists
             Optional<SurveyQuestion> questionOpt = questionRepository.findById(response.getSurveyQuestion().getId());
             if (questionOpt.isEmpty()) {
                 logger.warning("Skipping response: Invalid Survey Question ID " + response.getSurveyQuestion().getId());
@@ -65,7 +71,6 @@ public class SurveyService {
             }
             response.setSurveyQuestion(questionOpt.get());
 
-            // Ensure selected option exists
             if (response.getSelectedOption() == null || response.getSelectedOption().getId() == null) {
                 logger.warning("Skipping response: Missing Selected Option");
                 continue;
@@ -82,7 +87,6 @@ public class SurveyService {
             validResponses.add(response);
         }
 
-        // Save only valid responses
         if (!validResponses.isEmpty()) {
             responseRepository.saveAll(validResponses);
             logger.info("Survey responses saved successfully for user: " + username);
@@ -91,9 +95,6 @@ public class SurveyService {
         }
     }
 
-    /**
-     * Analyze responses and determine recommended security categories.
-     */
     public List<String> analyzeResponses(String username) {
         logger.info("Analyzing responses for user: " + username);
 
@@ -115,15 +116,10 @@ public class SurveyService {
         List<String> recommendations = getTopCategories(categoryScores);
         logger.info("Generated recommendations for user: " + username + " -> " + recommendations);
 
-        //  Store multiple recommendations as a comma-separated string in the database
         updateUserRecommendations(username, recommendations);
-
         return recommendations;
     }
 
-    /**
-     *  Store multiple recommended security categories in the database.
-     */
     public void updateUserRecommendations(String username, List<String> categories) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isPresent()) {
@@ -137,9 +133,6 @@ public class SurveyService {
         }
     }
 
-    /**
-     *  Retrieve stored recommendations from the database (multiple categories supported).
-     */
     public List<String> getStoredUserRecommendations(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isPresent()) {
@@ -151,9 +144,6 @@ public class SurveyService {
         return List.of("No recommendation available");
     }
 
-    /**
-     * Maps responses to security categories.
-     */
     private Set<String> mapResponseToCategories(String response) {
         Map<String, List<String>> categoryMap = new HashMap<>();
         categoryMap.put("Network Security", List.of("firewall", "ddos", "network", "intrusion detection"));
@@ -181,9 +171,6 @@ public class SurveyService {
         return categories.isEmpty() ? Set.of("General Security Awareness") : categories;
     }
 
-    /**
-     * Returns the top 3 scoring security categories.
-     */
     private List<String> getTopCategories(Map<String, Integer> categoryScores) {
         return categoryScores.entrySet().stream()
                 .sorted((a, b) -> b.getValue().compareTo(a.getValue()))

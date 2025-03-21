@@ -52,12 +52,6 @@ public class AdminDashboardController {
         return "manage-questionnaires";
     }
 
-    //  Manage Users Page
-    @GetMapping("/users")
-    public String manageUsers(Model model) {
-        model.addAttribute("users", adminService.getAllUsers());
-        return "manage-users";
-    }
 
     //  API: Get all questions
     @GetMapping("/api/questions")

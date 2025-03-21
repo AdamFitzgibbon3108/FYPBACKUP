@@ -34,16 +34,22 @@ public class SurveyController {
      */
     @GetMapping("/page")
     public String showSurveyPage(Model model, Principal principal) {
+        String username = (principal != null) ? principal.getName() : "Guest";
+
+        // ✅ NEW: Redirect if user has already completed the survey
+        if (surveyService.hasUserCompletedSurvey(username)) {
+            logger.info("User " + username + " has already completed the survey. Redirecting...");
+            return "redirect:/questionnaire/selection";
+        }
+
         logger.info("Rendering survey.html page...");
         List<SurveyQuestion> questions = surveyService.getAllQuestions();
         model.addAttribute("questions", questions);
 
-        //  Fetch and display the user's recommended security categories
-        String username = (principal != null) ? principal.getName() : "Guest";
         List<String> recommendedCategories = surveyService.getStoredUserRecommendations(username);
         model.addAttribute("recommendedCategories", recommendedCategories);
 
-        return "survey";  // Ensure `survey.html` exists in templates
+        return "survey";
     }
 
     /**
@@ -72,7 +78,6 @@ public class SurveyController {
         String username = (principal != null) ? principal.getName() : "Guest";
         logger.info("Received survey responses from user: " + username + ", count: " + responses.size());
 
-        //  Validate & ensure selected options exist
         for (SurveyResponse response : responses) {
             if (response.getSelectedOption() == null || response.getSelectedOption().getId() == null) {
                 logger.warning("Survey response is missing a selected option.");
@@ -87,15 +92,14 @@ public class SurveyController {
             response.setSelectedOption(selectedOption.get());
         }
 
-        //  Save responses
+        // Save responses
         surveyService.saveSurveyResponses(responses, username);
         logger.info("Survey responses saved successfully.");
 
-        //  Analyze responses to generate recommendations
+        // Analyze responses to generate recommendations
         List<String> recommendedCategories = surveyService.analyzeResponses(username);
         logger.info("Generated recommendations for user: " + username + " -> " + recommendedCategories);
 
-        //  Save recommendations in the database (as a comma-separated string)
         if (!recommendedCategories.isEmpty()) {
             surveyService.updateUserRecommendations(username, recommendedCategories);
         }
@@ -118,4 +122,3 @@ public class SurveyController {
         return Map.of("recommendedCategories", recommendedCategories);
     }
 }
-
