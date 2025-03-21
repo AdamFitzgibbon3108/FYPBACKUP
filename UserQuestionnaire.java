@@ -18,8 +18,8 @@ public class UserQuestionnaire {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "questionnaire_id", nullable = false) // ✅ Added this field
-    private Questionnaire questionnaire; // ✅ This fixes the mapping issue
+    @JoinColumn(name = "questionnaire_id", nullable = false) 
+    private Questionnaire questionnaire; 
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     @JoinTable(

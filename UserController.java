@@ -23,14 +23,14 @@ public class UserController {
     @Autowired
     private RoleRepository roleRepository;
 
-    // ✅ ADMIN-ONLY: Get all users
+    //  ADMIN-ONLY: Get all users
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    // ✅ Users can view their own profile, but only ADMIN can view any user
+    //  Users can view their own profile, but only ADMIN can view any user
     @PreAuthorize("hasRole('ADMIN') or #principal.name == authentication.name")
     @GetMapping("/{id}")
     public User getUserById(@PathVariable Long id) {
@@ -38,7 +38,7 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    // ✅ ADMIN-ONLY: Create a new user (Admin or Normal User)
+    //  ADMIN-ONLY: Create a new user (Admin or Normal User)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public User createUser(@RequestBody User user) {
@@ -59,14 +59,14 @@ public class UserController {
         return userService.createUser(user);
     }
 
-    // ✅ ADMIN-ONLY: Update user details
+    //  ADMIN-ONLY: Update user details
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public User updateUser(@PathVariable Long id, @RequestBody User user) {
         return userService.updateUser(id, user);
     }
 
-    // ✅ ADMIN-ONLY: Delete a user
+    //  ADMIN-ONLY: Delete a user
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {

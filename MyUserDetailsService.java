@@ -24,16 +24,16 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // ✅ Fix: Properly retrieve user from Optional<User>
+        // Properly retrieve user from Optional<User>
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // ✅ Extract role names as authorities (Spring Security requires "ROLE_" prefix)
+        // Extract role names as authorities (Spring Security requires "ROLE_" prefix)
         Set<GrantedAuthority> authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
                 .collect(Collectors.toSet());
 
-        // ✅ Build UserDetails object
+        //  Build UserDetails object
         return org.springframework.security.core.userdetails.User.withUsername(username)
                 .password(user.getPassword())
                 .authorities(authorities)

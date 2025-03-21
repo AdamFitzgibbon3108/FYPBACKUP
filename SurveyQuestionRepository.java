@@ -15,10 +15,10 @@ public interface SurveyQuestionRepository extends JpaRepository<SurveyQuestion, 
     @EntityGraph(attributePaths = {"options"})
     List<SurveyQuestion> findAll();
 
-    // ✅ Fetch question by ID (if used in SurveyService)
+    //  Fetch question by ID (if used in SurveyService)
     Optional<SurveyQuestion> findById(Long id);
 
-    // ✅ Fetch question by question text (if used in SurveyService)
+    //  Fetch question by question text (if used in SurveyService)
     Optional<SurveyQuestion> findByQuestionText(String questionText);
 }
 

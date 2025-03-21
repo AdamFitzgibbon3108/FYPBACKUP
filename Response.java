@@ -34,10 +34,10 @@ public class Response {
     @Column(nullable = false)
     private String category;
 
-    // ✅ Default constructor
+    //  Default constructor
     public Response() {}
 
-    // ✅ Fixed constructor to properly initialize values
+    //  Fixed constructor to properly initialize values
     public Response(Question question, User user, String answer, int score, LocalDateTime timestamp, String role, String category) {
         this.question = question;
         this.user = user;
@@ -48,7 +48,7 @@ public class Response {
         this.category = category != null ? category : "Unknown"; // Prevents null values
     }
 
-    // ✅ Getters and Setters
+    //  Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -73,7 +73,7 @@ public class Response {
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    // ✅ Debugging method to print response details
+    //  Debugging method to print response details
     @Override
     public String toString() {
         return "Response{" +

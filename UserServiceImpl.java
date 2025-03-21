@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(normalizedUsername);
         user.setPassword(hashedPassword);
 
-        // 🔥 Ensure at least a default role is assigned
+        //  Ensure at least a default role is assigned
         if (user.getRoles().isEmpty()) {
             Role defaultRole = roleRepository.findByName("USER")  // Fetch the default role
                     .orElseThrow(() -> new RuntimeException("Default role USER not found in DB"));
@@ -75,12 +75,12 @@ public class UserServiceImpl implements UserService {
 
         existingUser.setUsername(updatedUser.getUsername());
 
-        // ✅ Only update the password if it's provided
+        //  Only update the password if it's provided
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
-        // 🔥 FIX: Ensure roles are managed entities before assigning
+        //   Ensure roles are managed entities before assigning
         Set<Role> managedRoles = new HashSet<>();
         for (Role role : updatedUser.getRoles()) {
             Role managedRole = roleRepository.findByName(role.getName())

@@ -115,14 +115,14 @@ public class SurveyService {
         List<String> recommendations = getTopCategories(categoryScores);
         logger.info("Generated recommendations for user: " + username + " -> " + recommendations);
 
-        // ✅ Store multiple recommendations as a comma-separated string in the database
+        //  Store multiple recommendations as a comma-separated string in the database
         updateUserRecommendations(username, recommendations);
 
         return recommendations;
     }
 
     /**
-     * ✅ Store multiple recommended security categories in the database.
+     *  Store multiple recommended security categories in the database.
      */
     public void updateUserRecommendations(String username, List<String> categories) {
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -138,7 +138,7 @@ public class SurveyService {
     }
 
     /**
-     * ✅ Retrieve stored recommendations from the database (multiple categories supported).
+     *  Retrieve stored recommendations from the database (multiple categories supported).
      */
     public List<String> getStoredUserRecommendations(String username) {
         Optional<User> userOptional = userRepository.findByUsername(username);

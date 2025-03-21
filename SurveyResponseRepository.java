@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface SurveyResponseRepository extends JpaRepository<SurveyResponse, Long> {
 
-    // ✅ Fetch all responses for a given user
+    //  Fetch all responses for a given user
     List<SurveyResponse> findByUser_Username(String username);
 }
 

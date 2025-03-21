@@ -86,7 +86,7 @@ public class QuestionService {
     public List<Question> getQuestionsByIds(List<Long> questionIds) {
         List<Question> questions = questionRepository.findAllById(questionIds);
 
-        // ✅ Ensure that all requested IDs exist
+        //  Ensure that all requested IDs exist
         if (questions.size() != questionIds.size()) {
             System.out.println("⚠️ Warning: Some selected question IDs were not found in the database.");
         }
@@ -122,17 +122,17 @@ public class QuestionService {
         questionData.put("score", question.getScore());
         questionData.put("role", question.getRole());
 
-        // ✅ Ensure control category is not null before accessing
+        //  Ensure control category is not null before accessing
         if (question.getControlCategory() != null) {
             questionData.put("controlCategory", question.getControlCategory().getName());
         } else {
             questionData.put("controlCategory", "Unknown");
         }
 
-        // ✅ Include correct answer for internal validation (not exposed to user)
+        //  Include correct answer for internal validation (not exposed to user)
         questionData.put("correctAnswer", question.getCorrectAnswer());
 
-        // ✅ Handle question options safely
+        //  Handle question options safely
         if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
             questionData.put("options", List.of("True", "False"));
         } else if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {

@@ -43,16 +43,16 @@ public class RegistrationService {
     public RedirectView registerUser(User user, String roleName) {
         logger.info("📝 Attempting to register user: {}", user.getUsername());
 
-        // ✅ Check if the username already exists
+        //  Check if the username already exists
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             logger.warn("❌ Username already exists: {}", user.getUsername());
             throw new IllegalArgumentException("Username already exists!");
         }
 
-        // ✅ Encode the password
+        //  Encode the password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // ✅ Assign role dynamically based on input
+        //  Assign role dynamically based on input
         Role role = roleRepository.findByName(roleName)
                 .orElseThrow(() -> {
                     logger.error("❌ Role '{}' does not exist!", roleName);
@@ -66,7 +66,7 @@ public class RegistrationService {
         userRepository.save(user);
         logger.info("✅ User '{}' registered successfully with role '{}'", user.getUsername(), roleName);
 
-        // ✅ Redirect user to the appropriate dashboard
+        //  Redirect user to the appropriate dashboard
         RedirectView redirectView = getRedirectView(roleName);
         logger.info("🔄 Redirecting '{}' to '{}'", user.getUsername(), redirectView.getUrl());
         return redirectView;
@@ -81,7 +81,7 @@ public class RegistrationService {
     public RedirectView registerAdmin(User user) {
         logger.info("📝 Attempting to register admin: {}", user.getUsername());
 
-        // ✅ Step 1: Check if the username already exists
+        //  Step 1: Check if the username already exists
         Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
         if (existingUser.isPresent()) {
             logger.warn("❌ Username already exists: {}", user.getUsername());
@@ -89,18 +89,18 @@ public class RegistrationService {
         }
         logger.info("✅ Username '{}' is available", user.getUsername());
 
-        // ✅ Step 2: Ensure the request is made by an authenticated ADMIN user
+        //  Step 2: Ensure the request is made by an authenticated ADMIN user
         if (!isAuthenticatedUserAdmin()) {
             logger.error("🚨 Unauthorized attempt to create admin by non-admin user.");
             throw new SecurityException("Only admins can create new admin accounts.");
         }
         logger.info("✅ Authenticated user is an admin, proceeding with registration.");
 
-        // ✅ Step 3: Encode the password
+        //  Step 3: Encode the password
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         logger.info("✅ Password encoded for '{}'", user.getUsername());
 
-        // ✅ Step 4: Retrieve ADMIN role
+        //  Step 4: Retrieve ADMIN role
         Optional<Role> optionalAdminRole = roleRepository.findByName("ADMIN");
         if (optionalAdminRole.isEmpty()) {
             logger.error("❌ ADMIN role does not exist! Ensure roles are properly seeded.");
@@ -109,16 +109,16 @@ public class RegistrationService {
         Role adminRole = optionalAdminRole.get();
         logger.info("✅ Retrieved role: {}", adminRole.getName());
 
-        // ✅ Step 5: Assign only the ADMIN role
+        //  Step 5: Assign only the ADMIN role
         user.getRoles().clear(); // Ensure no previous roles exist
         user.getRoles().add(adminRole);
         logger.info("✅ Assigned ADMIN role to '{}'", user.getUsername());
 
-        // ✅ Step 6: Save user with ADMIN role
+        //  Step 6: Save user with ADMIN role
         user = userRepository.save(user);
         logger.info("✅ Admin '{}' registered successfully!", user.getUsername());
 
-        // ✅ Step 7: Fetch the user again to verify roles
+        //  Step 7: Fetch the user again to verify roles
         Optional<User> savedUser = userRepository.findByUsernameWithRoles(user.getUsername());
         if (savedUser.isEmpty()) {
             logger.error("❌ Failed to retrieve user '{}' after saving!", user.getUsername());
@@ -127,7 +127,7 @@ public class RegistrationService {
         logger.info("🔎 User '{}' retrieved from DB after save. Assigned roles: {}", 
             savedUser.get().getUsername(), savedUser.get().getRoles());
 
-        // ✅ Step 8: Verify if the user has ADMIN role
+        //  Step 8: Verify if the user has ADMIN role
         boolean isAdminAssigned = savedUser.get().getRoles().stream()
             .anyMatch(role -> role.getName().equals("ADMIN"));
 
@@ -137,7 +137,7 @@ public class RegistrationService {
         }
         logger.info("✅ User '{}' successfully assigned ADMIN role!", user.getUsername());
 
-        // ✅ Step 9: Redirect admin to the admin dashboard
+        //  Step 9: Redirect admin to the admin dashboard
         return new RedirectView("/admin-dashboard");
     }
 

@@ -23,7 +23,7 @@ public class RegistrationController {
         this.registrationService = registrationService;
     }
 
-    // ✅ Display the registration page for users
+    //  Display the registration page for users
     @GetMapping
     public String showRegistrationForm(Model model) {
         logger.info("🔍 Displaying registration form");
@@ -31,7 +31,7 @@ public class RegistrationController {
         return "registration"; // Renders registration.html
     }
 
-    // ✅ Handle user registration (Default Role: USER)
+    //  Handle user registration (Default Role: USER)
     @PostMapping
     public String registerUser(@ModelAttribute User user, Model model) {
         try {
@@ -55,7 +55,7 @@ public class RegistrationController {
         }
     }
 
-    // ✅ ADMIN-ONLY: Register a new admin (Only an admin can access this endpoint)
+    //  ADMIN-ONLY: Register a new admin (Only an admin can access this endpoint)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin")
     public String registerAdmin(@ModelAttribute User user, Model model) {

@@ -43,10 +43,10 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // ✅ Default Constructor
+    //  Default Constructor
     public User() {}
 
-    // ✅ Constructor with fields
+    // Constructor with fields
     public User(String username, String password, Set<Role> roles) {
         this.username = username;
         this.password = password;
@@ -55,7 +55,7 @@ public class User {
         this.recommendedSecurityCategory = null;
     }
 
-    // ✅ Getters and Setters
+    //  Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
@@ -84,12 +84,12 @@ public class User {
 
     public Set<Role> getRoles() { return roles; }
     
-    // ✅ Prevents null roles being assigned
+    //  Prevents null roles being assigned
     public void setRoles(Set<Role> roles) {
         this.roles = (roles != null) ? roles : new HashSet<>();
     }
 
-    // ✅ Role Management
+    //  Role Management
     public void addRole(Role role) {
         this.roles.add(role);
     }

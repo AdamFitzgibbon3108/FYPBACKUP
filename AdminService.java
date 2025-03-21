@@ -30,23 +30,23 @@ public class AdminService {
     @Autowired
     private RoleRepository roleRepository;
 
-    // ✅ Get all questions
+    //  Get all questions
     public List<Question> getAllQuestions() {
         return questionRepository.findAll();
     }
 
-    // ✅ Get all questionnaires
+    //  Get all questionnaires
     public List<Questionnaire> getAllQuestionnaires() {
         return questionnaireRepository.findAll();
     }
 
-    // ✅ Get a specific questionnaire by ID
+    //  Get a specific questionnaire by ID
     public Questionnaire getQuestionnaireById(Long questionnaireId) {
         return questionnaireRepository.findById(questionnaireId)
                 .orElseThrow(() -> new RuntimeException("Questionnaire not found with ID: " + questionnaireId));
     }
 
-    // ✅ Create a new questionnaire and assign the creator
+    //  Create a new questionnaire and assign the creator
     @Transactional
     public Questionnaire createQuestionnaire(String title, String description, String adminUsername) {
         User adminUser = userRepository.findByUsername(adminUsername)
@@ -60,7 +60,7 @@ public class AdminService {
         return questionnaireRepository.save(questionnaire);
     }
 
-    // ✅ Assign questions to a questionnaire
+    //  Assign questions to a questionnaire
     @Transactional
     public Questionnaire assignQuestionsToQuestionnaire(Long questionnaireId, List<Long> questionIds) {
         Questionnaire questionnaire = getQuestionnaireById(questionnaireId);
@@ -69,7 +69,7 @@ public class AdminService {
         return questionnaireRepository.save(questionnaire);
     }
 
-    // ✅ Remove questions from a questionnaire
+    //  Remove questions from a questionnaire
     @Transactional
     public Questionnaire removeQuestionsFromQuestionnaire(Long questionnaireId, List<Long> questionIds) {
         Questionnaire questionnaire = getQuestionnaireById(questionnaireId);
@@ -77,7 +77,7 @@ public class AdminService {
         return questionnaireRepository.save(questionnaire);
     }
 
-    // ✅ Delete a questionnaire
+    //  Delete a questionnaire
     @Transactional
     public void deleteQuestionnaire(Long questionnaireId) {
         if (questionnaireRepository.existsById(questionnaireId)) {
@@ -87,12 +87,12 @@ public class AdminService {
         }
     }
 
-    // ✅ Get all users
+    //  Get all users
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // ✅ Assign a role to a user
+    //  Assign a role to a user
     @Transactional
     public void assignRoleToUser(Long userId, String roleName) {
         User user = userRepository.findById(userId)
@@ -107,7 +107,7 @@ public class AdminService {
         }
     }
 
-    // ✅ Remove a role from a user
+    //  Remove a role from a user
     @Transactional
     public void removeRoleFromUser(Long userId, String roleName) {
         User user = userRepository.findById(userId)
@@ -117,7 +117,7 @@ public class AdminService {
         userRepository.save(user);
     }
 
-    // ✅ Update user details (Removed setEmail method)
+    //  Update user details (Removed setEmail method)
     @Transactional
     public User updateUser(Long userId, Map<String, Object> updates) {
         User user = userRepository.findById(userId)
@@ -138,7 +138,7 @@ public class AdminService {
     }
 
 
-    // ✅ Delete a user
+    //  Delete a user
     @Transactional
     public void deleteUser(Long userId) {
         if (userRepository.existsById(userId)) {
@@ -148,22 +148,22 @@ public class AdminService {
         }
     }
 
-    // ✅ Get total number of users
+    //  Get total number of users
     public long getTotalUsers() {
         return userRepository.count();
     }
 
-    // ✅ Get number of active users
+    //  Get number of active users
     public long getActiveUsers() {
         return userRepository.countActiveUsers(); // Ensure this method exists in UserRepository
     }
 
-    // ✅ Get number of pending user approvals
+    //  Get number of pending user approvals
     public long getPendingApprovals() {
         return userRepository.countPendingUsers(); // Ensure this method exists in UserRepository
     }
 
-    // ✅ Get statistics for admin dashboard
+    // Get statistics for admin dashboard
     public AdminDashboardStats getAdminDashboardStats() {
         return new AdminDashboardStats(
                 getTotalUsers(),
@@ -172,7 +172,7 @@ public class AdminService {
         );
     }
 
-    // ✅ Inner class for admin dashboard statistics
+    //  Inner class for admin dashboard statistics
     public static class AdminDashboardStats {
         private final long totalUsers;
         private final long activeUsers;

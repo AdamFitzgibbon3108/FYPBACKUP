@@ -30,7 +30,7 @@ public class SurveyController {
     private SurveyQuestionOptionsRepository surveyQuestionOptionsRepository;
 
     /**
-     * ✅ Display the survey page with questions and recommendations.
+     *  Display the survey page with questions and recommendations.
      */
     @GetMapping("/page")
     public String showSurveyPage(Model model, Principal principal) {
@@ -38,7 +38,7 @@ public class SurveyController {
         List<SurveyQuestion> questions = surveyService.getAllQuestions();
         model.addAttribute("questions", questions);
 
-        // ✅ Fetch and display the user's recommended security categories
+        //  Fetch and display the user's recommended security categories
         String username = (principal != null) ? principal.getName() : "Guest";
         List<String> recommendedCategories = surveyService.getStoredUserRecommendations(username);
         model.addAttribute("recommendedCategories", recommendedCategories);
@@ -47,7 +47,7 @@ public class SurveyController {
     }
 
     /**
-     * ✅ Fetch all survey questions (for frontend JavaScript)
+     *  Fetch all survey questions (for frontend JavaScript)
      */
     @GetMapping("/questions")
     @ResponseBody
@@ -59,7 +59,7 @@ public class SurveyController {
     }
 
     /**
-     * ✅ Submit survey responses, analyze recommendations, and save them
+     *  Submit survey responses, analyze recommendations, and save them
      */
     @PostMapping("/submit")
     @ResponseBody
@@ -72,7 +72,7 @@ public class SurveyController {
         String username = (principal != null) ? principal.getName() : "Guest";
         logger.info("Received survey responses from user: " + username + ", count: " + responses.size());
 
-        // ✅ Validate & ensure selected options exist
+        //  Validate & ensure selected options exist
         for (SurveyResponse response : responses) {
             if (response.getSelectedOption() == null || response.getSelectedOption().getId() == null) {
                 logger.warning("Survey response is missing a selected option.");
@@ -87,15 +87,15 @@ public class SurveyController {
             response.setSelectedOption(selectedOption.get());
         }
 
-        // ✅ Save responses
+        //  Save responses
         surveyService.saveSurveyResponses(responses, username);
         logger.info("Survey responses saved successfully.");
 
-        // ✅ Analyze responses to generate recommendations
+        //  Analyze responses to generate recommendations
         List<String> recommendedCategories = surveyService.analyzeResponses(username);
         logger.info("Generated recommendations for user: " + username + " -> " + recommendedCategories);
 
-        // ✅ Save recommendations in the database (as a comma-separated string)
+        //  Save recommendations in the database (as a comma-separated string)
         if (!recommendedCategories.isEmpty()) {
             surveyService.updateUserRecommendations(username, recommendedCategories);
         }
@@ -104,7 +104,7 @@ public class SurveyController {
     }
 
     /**
-     * ✅ Retrieve stored recommendations for the current user
+     * Retrieve stored recommendations for the current user
      */
     @GetMapping("/recommendation")
     @ResponseBody

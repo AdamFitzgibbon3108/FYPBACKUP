@@ -160,7 +160,7 @@ public class QuestionController {
                         response.setAnswer(answer);
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
-                        response.setCategory(category); // ✅ Fixed: Using correct setter
+                        response.setCategory(category); 
                         response.setScore(0); // Placeholder for scoring
 
                         try {

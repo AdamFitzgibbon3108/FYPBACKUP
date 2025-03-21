@@ -31,7 +31,7 @@ public class UserQuestionnaireController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         
-        // ✅ Fix: Properly retrieve the user from Optional
+        //   Properly retrieve the user from Optional
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found!"));
 

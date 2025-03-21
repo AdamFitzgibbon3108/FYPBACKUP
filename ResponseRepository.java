@@ -25,26 +25,26 @@ public interface ResponseRepository extends JpaRepository<Response, Long> {
 
     /**
      * Fetches responses for a specific user and question.
-     * 🔍 FIXED: Updated to return a **list** instead of a single response (to handle multiple entries).
+     *
      */
     List<Response> findByUserAndQuestion(User user, Question question);
 
     /**
      * Fetches responses for a given user ID.
-     * ✅ Improved with null-checking and optional handling.
+     *  Improved with null-checking and optional handling.
      */
     @Query("SELECT r FROM Response r WHERE r.user.id = ?1")
     List<Response> findByUserId(Long userId);
 
     /**
      * Fetches responses for a given question ID.
-     * ✅ Ensures that all question responses are properly retrieved.
+     * Ensures that all question responses are properly retrieved.
      */
     @Query("SELECT r FROM Response r WHERE r.question.id = ?1")
     List<Response> findByQuestionId(Long questionId);
 
     /**
-     * 🔍 Debugging Query: Fetch all responses.
+     *  Debugging Query: Fetch all responses.
      */
     @Query("SELECT COUNT(r) FROM Response r")
     long countAllResponses();

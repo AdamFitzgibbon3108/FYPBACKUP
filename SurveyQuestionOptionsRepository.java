@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface SurveyQuestionOptionsRepository extends JpaRepository<SurveyQuestionOptions, Long> {
 
-    // ✅ Fetch all predefined answer choices for a given question
+    //  Fetch all predefined answer choices for a given question
     List<SurveyQuestionOptions> findBySurveyQuestionId(Long surveyQuestionId);
 
-    // ✅ Fix: Find a survey option by its value (used in SurveyService)
+    //  Find a survey option by its value (used in SurveyService)
     Optional<SurveyQuestionOptions> findByOptionValue(String optionValue);
 }
