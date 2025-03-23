@@ -1,14 +1,17 @@
 package com.example.controller;
 
 import com.example.model.Question;
-import com.example.model.User;
-import com.example.model.Response;
 import com.example.model.QuizResult;
-import com.example.service.QuestionService;
+import com.example.model.Response;
+import com.example.model.SecurityControl; // 🔹 NEW
+import com.example.model.User;
 import com.example.repository.QuestionRepository;
+import com.example.repository.QuizResultRepository;
 import com.example.repository.ResponseRepository;
 import com.example.repository.UserRepository;
-import com.example.repository.QuizResultRepository;
+import com.example.service.QuestionService;
+import com.example.repository.SecurityControlRepository; // 🔹 NEW
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,11 +19,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/questions")
@@ -40,9 +42,24 @@ public class QuestionController {
 
     @Autowired
     private QuizResultRepository quizResultRepository;
-    
-    private static final Logger log = LoggerFactory.getLogger(QuestionController.class);
 
+    @Autowired
+    private SecurityControlRepository securityControlRepository; // 🔹 NEW
+
+    // 🔹 NEW: Get grouped categories
+    @GetMapping("/grouped-categories")
+    @ResponseBody
+    public Map<String, List<String>> getGroupedCategories() {
+        List<SecurityControl> allControls = securityControlRepository.findAll();
+
+        return allControls.stream()
+                .filter(control -> control.getCategoryGroup() != null)
+                .collect(Collectors.groupingBy(
+                        SecurityControl::getCategoryGroup,
+                        TreeMap::new, // sorted by group name
+                        Collectors.mapping(SecurityControl::getName, Collectors.toList())
+                ));
+    }
 
     @GetMapping("/manage")
     public String manageQuestions(Model model) {
@@ -100,23 +117,18 @@ public class QuestionController {
     public String submitQuestionnaire(@RequestParam Map<String, String> requestBody, Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        log.info("📩 Received quiz submission from user: {}", username);
 
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
-            log.error("❌ User not found: {}", username);
             model.addAttribute("error", "User not found.");
             return "result";
         }
         User user = userOptional.get();
-        log.debug("✅ Found user: {}", user.getUsername());
 
         String selectedRole = requestBody.get("selectedRole");
         String selectedCategory = requestBody.get("selectedCategory");
-        log.info("📝 Quiz Role: {}, Category: {}", selectedRole, selectedCategory);
 
         if (selectedRole == null || selectedCategory == null) {
-            log.error("❌ Missing role or category in submission data.");
             model.addAttribute("error", "Missing role or category.");
             return "result";
         }
@@ -124,13 +136,11 @@ public class QuestionController {
         List<Response> savedResponses = new ArrayList<>();
         int totalScore = 0;
 
-        log.debug("🔍 Extracting questions from request...");
         for (Map.Entry<String, String> entry : requestBody.entrySet()) {
             if (entry.getKey().startsWith("question_")) {
                 try {
                     Long questionId = Long.parseLong(entry.getKey().replace("question_", ""));
                     String answer = entry.getValue();
-                    log.info("📌 Processing Question ID: {}, Answer: {}", questionId, answer);
 
                     Optional<Question> questionOptional = questionRepository.findById(questionId);
                     if (questionOptional.isPresent()) {
@@ -139,8 +149,6 @@ public class QuestionController {
 
                         int score = correctAnswer.trim().equalsIgnoreCase(answer.trim()) ? 1 : 0;
                         totalScore += score;
-                        log.debug("✅ Question: {} | Correct Answer: {} | User Answer: {} | Score: {}",
-                                question.getQuestionText(), correctAnswer, answer, score);
 
                         Response response = new Response();
                         response.setUser(user);
@@ -153,32 +161,24 @@ public class QuestionController {
 
                         responseRepository.save(response);
                         savedResponses.add(response);
-                    } else {
-                        log.warn("⚠️ Question ID {} not found in database!", questionId);
                     }
-                } catch (NumberFormatException e) {
-                    log.error("❌ Error parsing question ID: {} | Exception: {}", entry.getKey(), e.getMessage());
-                }
+                } catch (NumberFormatException ignored) {}
             }
         }
 
         if (!savedResponses.isEmpty()) {
             QuizResult quizResult = new QuizResult(user, totalScore, savedResponses.size(), selectedCategory, selectedRole);
             quizResultRepository.save(quizResult);
-            log.info("🎯 Quiz result saved! User: {} | Score: {}/{}", user.getUsername(), totalScore, savedResponses.size());
         } else {
-            log.error("❌ No valid responses recorded for user: {}", user.getUsername());
             model.addAttribute("error", "No responses recorded.");
             return "result";
         }
 
-        // Add result details to the model
         model.addAttribute("score", totalScore);
         model.addAttribute("total", savedResponses.size());
         model.addAttribute("role", selectedRole);
         model.addAttribute("category", selectedCategory);
 
-        log.info("✅ Submission completed! Redirecting to result page.");
-        return "result"; // This renders result.html
+        return "result";
     }
 }

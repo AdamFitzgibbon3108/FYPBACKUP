@@ -61,7 +61,7 @@
         }
 
         select, button {
-            background: rgba(255, 255, 255, 0.2);
+            background: #1f2b3a;
             border: 1px solid #58a6ff;
             color: #ffffff;
             padding: 0.8rem;
@@ -69,17 +69,22 @@
             border-radius: 5px;
             font-size: 1rem;
             margin-top: 0.5rem;
+            transition: background 0.3s ease;
         }
 
         select:focus, button:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #2c3e50;
             outline: none;
         }
 
         select option {
-            background: rgba(20, 30, 48, 0.95);
+            background: #1f2b3a;
             color: #ffffff;
-            padding: 10px;
+        }
+
+        select option:hover {
+            background-color: #58a6ff;
+            color: #000;
         }
 
         .btn-custom {
@@ -130,11 +135,12 @@
             accent-color: #58a6ff;
         }
     </style>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             fetchUserRecommendation();
             fetchRoles();
-            fetchCategories();
+            fetchGroupedCategories();
         });
 
         function fetchUserRecommendation() {
@@ -142,15 +148,13 @@
                 .then(response => response.json())
                 .then(data => {
                     let recommendations = data.recommendedCategories || [];
-                    let recommendationText = recommendations.length > 0 
-                        ? recommendations.join(", ")  // Show multiple categories
+                    document.getElementById("recommendedCategory").textContent = recommendations.length > 0
+                        ? recommendations.join(", ")
                         : "No recommendation available";
-
-                    document.getElementById("recommendedCategory").textContent = recommendationText;
                 })
                 .catch(error => {
                     console.error("Error fetching recommendation:", error);
-                    document.getElementById("recommendedCategory").textContent = "Error fetching recommendation";
+                    document.getElementById("recommendedCategory").textContent = "Error loading recommendation";
                 });
         }
 
@@ -161,17 +165,32 @@
                 .catch(error => console.error("Error fetching roles:", error));
         }
 
-        function fetchCategories() {
-            fetch("/questions/categories")
+        function fetchGroupedCategories() {
+            fetch("/questions/grouped-categories")
                 .then(response => response.json())
-                .then(data => populateDropdown("selectedCategory", ["None", ...data], "Select Category"))
-                .catch(error => console.error("Error fetching categories:", error));
+                .then(data => {
+                    const groupDropdown = document.getElementById("categoryGroup");
+                    groupDropdown.innerHTML = '<option value="" disabled selected>Select Category Group</option>';
+                    Object.keys(data).forEach(group => {
+                        const opt = document.createElement("option");
+                        opt.value = group;
+                        opt.textContent = group;
+                        groupDropdown.appendChild(opt);
+                    });
+
+                    groupDropdown.onchange = () => {
+                        const selectedGroup = groupDropdown.value;
+                        const categories = data[selectedGroup];
+                        populateDropdown("selectedCategory", categories, "Select Specific Category");
+                    };
+                })
+                .catch(error => console.error("Error fetching grouped categories:", error));
         }
 
         function populateDropdown(elementId, options, defaultText) {
-            let dropdown = document.getElementById(elementId);
+            const dropdown = document.getElementById(elementId);
             dropdown.innerHTML = "";
-            let defaultOption = document.createElement("option");
+            const defaultOption = document.createElement("option");
             defaultOption.value = "";
             defaultOption.textContent = defaultText;
             defaultOption.disabled = true;
@@ -179,7 +198,7 @@
             dropdown.appendChild(defaultOption);
 
             options.forEach(option => {
-                let opt = document.createElement("option");
+                const opt = document.createElement("option");
                 opt.value = option;
                 opt.textContent = option;
                 dropdown.appendChild(opt);
@@ -188,23 +207,13 @@
 
         function adjustFormAction(event) {
             event.preventDefault();
-            let categoryValue = document.getElementById("selectedCategory").value;
-            let roleValue = document.getElementById("selectedRole").value;
+            const roleValue = document.getElementById("selectedRole").value;
+            const categoryValue = document.getElementById("selectedCategory").value;
 
-            if (!roleValue) {
-                alert("Please select a role.");
-                return;
-            }
+            if (!roleValue) return alert("Please select a role.");
+            if (!categoryValue) return alert("Please select a category.");
 
-            if (!categoryValue) {
-                alert("Please select a category.");
-                return;
-            }
-
-            let url = categoryValue === "None"
-                ? `/questions/start-role-only?selectedRole=${encodeURIComponent(roleValue)}`
-                : `/questions/start?selectedRole=${encodeURIComponent(roleValue)}&selectedCategory=${encodeURIComponent(categoryValue)}`;
-
+            const url = `/questions/start?selectedRole=${encodeURIComponent(roleValue)}&selectedCategory=${encodeURIComponent(categoryValue)}`;
             window.location.href = url;
         }
     </script>
@@ -223,7 +232,10 @@
             <label for="selectedRole">Choose Your Role:</label>
             <select name="selectedRole" id="selectedRole"></select>
 
-            <label for="selectedCategory">Choose a Security Category:</label>
+            <label for="categoryGroup">Choose a High-Level Category:</label>
+            <select id="categoryGroup"></select>
+
+            <label for="selectedCategory">Choose a Security Subcategory:</label>
             <select name="selectedCategory" id="selectedCategory"></select>
 
             <button type="submit" class="btn-custom">Generate Questionnaire</button>

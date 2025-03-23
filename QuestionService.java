@@ -19,98 +19,73 @@ public class QuestionService {
     @Autowired
     private SecurityControlRepository securityControlRepository;
 
-    /**
-     * Fetches all questions from the database.
-     */
     public List<Question> getAllQuestions() {
         return questionRepository.findAll();
     }
 
-    /**
-     * Fetches questions by role and difficulty.
-     * Ensures questions are randomly shuffled for variety.
-     */
     public List<Question> getQuestionsForRole(String role, String difficulty) {
         List<Question> securityQuestions = questionRepository.findByRoleAndDifficulty(role, difficulty);
-
-        // ✅ Shuffle questions directly, no need to convert to Map
         Collections.shuffle(securityQuestions);
         return securityQuestions;
     }
 
-    /**
-     * Fetches questions by role and category.
-     */
     public List<Question> getQuestionsByRoleAndCategory(String role, String category) {
         return questionRepository.findByRoleAndCategory(role, category);
     }
 
-    /**
-     * Fetches questions by category.
-     */
     public List<Question> getQuestionsByCategory(String category) {
         return questionRepository.findByCategory(category);
     }
 
-    /**
-     * Fetches questions by role only.
-     */
     public List<Question> getQuestionsByRole(String role) {
         return questionRepository.findByRole(role);
     }
 
-    /**
-     * Fetches all questions belonging to a given security control category.
-     */
     public List<Question> getQuestionsByControlCategory(String categoryName) {
         SecurityControl controlCategory = securityControlRepository.findByName(categoryName);
-
         if (controlCategory == null) {
             System.out.println("⚠️ Warning: Security control category '" + categoryName + "' not found.");
             return Collections.emptyList();
         }
-
         return questionRepository.findByControlCategory(controlCategory);
     }
 
-    /**
-     * Fetches a single question by ID.
-     */
     public Optional<Question> getQuestionById(Long questionId) {
         return questionRepository.findById(questionId);
     }
 
-    /**
-     * Fetches multiple questions by their IDs.
-     */
     public List<Question> getQuestionsByIds(List<Long> questionIds) {
         List<Question> questions = questionRepository.findAllById(questionIds);
-
-        //  Ensure that all requested IDs exist
         if (questions.size() != questionIds.size()) {
             System.out.println("⚠️ Warning: Some selected question IDs were not found in the database.");
         }
-
         return questions;
     }
 
-    /**
-     * Fetches all unique roles from the database.
-     */
     public List<String> getAllRoles() {
         return questionRepository.findDistinctRoles();
     }
 
-    /**
-     * Fetches all unique categories from the database.
-     */
     public List<String> getAllCategories() {
         return questionRepository.findDistinctCategories();
     }
 
     /**
-     * Converts a Question entity into a structured Map.
+     * ✅ Group all security controls by categoryGroup
      */
+    public Map<String, List<String>> getGroupedSecurityControls() {
+        List<SecurityControl> allControls = securityControlRepository.findAll();
+        Map<String, List<String>> grouped = new LinkedHashMap<>();
+
+        for (SecurityControl control : allControls) {
+            String group = control.getCategoryGroup() != null ? control.getCategoryGroup() : "Uncategorized";
+            grouped.putIfAbsent(group, new ArrayList<>());
+            grouped.get(group).add(control.getName());
+        }
+
+        return grouped;
+    }
+
     private Map<String, Object> convertQuestionToMap(Question question) {
         Map<String, Object> questionData = new HashMap<>();
         questionData.put("id", question.getId());
@@ -122,17 +97,14 @@ public class QuestionService {
         questionData.put("score", question.getScore());
         questionData.put("role", question.getRole());
 
-        //  Ensure control category is not null before accessing
         if (question.getControlCategory() != null) {
             questionData.put("controlCategory", question.getControlCategory().getName());
         } else {
             questionData.put("controlCategory", "Unknown");
         }
 
-        //  Include correct answer for internal validation (not exposed to user)
         questionData.put("correctAnswer", question.getCorrectAnswer());
 
-        //  Handle question options safely
         if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
             questionData.put("options", List.of("True", "False"));
         } else if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
@@ -145,10 +117,6 @@ public class QuestionService {
         return questionData;
     }
 
-    /**
-     * Extracts multiple-choice options safely.
-     * Assumes options are stored in a separate column formatted as "option1,option2,option3,option4".
-     */
     private List<String> extractOptions(Question question) {
         if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
             String optionsStr = question.getOptions();
