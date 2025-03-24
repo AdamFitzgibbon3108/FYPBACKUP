@@ -17,10 +17,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/admin")
@@ -36,7 +38,6 @@ public class AdminDashboardController {
     @Autowired
     private QuizResultService quizResultService;
 
-    // Admin Dashboard UI
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, Principal principal) {
         model.addAttribute("adminName", principal.getName());
@@ -49,39 +50,33 @@ public class AdminDashboardController {
         return "admin-dashboard";
     }
 
-    // Manage Questions Page
     @GetMapping("/questions")
     public String manageQuestions(Model model) {
         model.addAttribute("questions", adminService.getAllQuestions());
         return "manage-questions";
     }
 
-    // Manage Questionnaires Page
     @GetMapping("/questionnaires")
     public String manageQuestionnaires(Model model) {
         model.addAttribute("questionnaires", adminService.getAllQuestionnaires());
         return "manage-questionnaires";
     }
 
-    // API: Get all questions
     @GetMapping("/api/questions")
     public ResponseEntity<List<Question>> getAllQuestions() {
         return ResponseEntity.ok(adminService.getAllQuestions());
     }
 
-    // API: Get all questionnaires
     @GetMapping("/api/questionnaires")
     public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
         return ResponseEntity.ok(adminService.getAllQuestionnaires());
     }
 
-    // API: Get a specific questionnaire by ID
     @GetMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable Long questionnaireId) {
         return ResponseEntity.ok(adminService.getQuestionnaireById(questionnaireId));
     }
 
-    // API: Create a new questionnaire
     @PostMapping("/api/questionnaires")
     public ResponseEntity<Questionnaire> createQuestionnaire(
             @RequestBody Map<String, Object> requestData,
@@ -93,7 +88,6 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.createQuestionnaire(title, description, adminUsername));
     }
 
-    // API: Assign questions to a questionnaire
     @PostMapping("/api/questionnaires/{questionnaireId}/assign")
     public ResponseEntity<Questionnaire> assignQuestionsToQuestionnaire(
             @PathVariable Long questionnaireId,
@@ -101,7 +95,6 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.assignQuestionsToQuestionnaire(questionnaireId, questionIds));
     }
 
-    // API: Remove questions from a questionnaire
     @PostMapping("/api/questionnaires/{questionnaireId}/remove")
     public ResponseEntity<Questionnaire> removeQuestionsFromQuestionnaire(
             @PathVariable Long questionnaireId,
@@ -109,20 +102,17 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.removeQuestionsFromQuestionnaire(questionnaireId, questionIds));
     }
 
-    // API: Delete a questionnaire
     @DeleteMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<String> deleteQuestionnaire(@PathVariable Long questionnaireId) {
         adminService.deleteQuestionnaire(questionnaireId);
         return ResponseEntity.ok("Questionnaire deleted successfully.");
     }
 
-    // API: Get all users
     @GetMapping("/api/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
-    // API: Update user details
     @PutMapping("/api/users/{userId}")
     public ResponseEntity<User> updateUser(
             @PathVariable Long userId,
@@ -131,7 +121,6 @@ public class AdminDashboardController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    // API: Manage user roles (Assign/Remove in a single method)
     @PostMapping("/api/users/{userId}/roles")
     public ResponseEntity<String> updateUserRoles(
             @PathVariable Long userId,
@@ -146,22 +135,19 @@ public class AdminDashboardController {
         }
     }
 
-    // API: Delete a user
     @DeleteMapping("/api/users/{userId}")
     public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         adminService.deleteUser(userId);
         return ResponseEntity.ok("User deleted successfully.");
     }
 
-    // ✅ NEW: Admin Performance Viewer – List all users' performance
     @GetMapping("/performance")
     public String viewAllUserPerformance(Model model) {
         List<UserPerformanceDTO> performanceList = userService.getAllUserPerformance();
         model.addAttribute("performanceList", performanceList);
-        return "admin-performance"; // Create this HTML page
+        return "admin-performance";
     }
 
-    // ✅ NEW: Admin Performance Viewer – View individual user's quiz history
     @GetMapping("/performance/{userId}")
     public String viewUserQuizHistory(@PathVariable Long userId, Model model) {
         List<QuizResult> results = quizResultService.findByUserId(userId);
@@ -169,6 +155,31 @@ public class AdminDashboardController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         model.addAttribute("user", user);
         model.addAttribute("results", results);
-        return "admin-user-quiz-history"; // Create this HTML page
+        return "admin-user-quiz-history";
     }
-}
+
+    @PostMapping("/toggle-ban")
+    public String toggleUserBan(@RequestParam("username") String username, RedirectAttributes redirectAttributes) {
+        Optional<User> optionalUser = userService.findByUsername(username);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setBanned(!user.isBanned());
+            userService.updateUser(user.getId(), user);
+            redirectAttributes.addFlashAttribute("message", "User ban status updated.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "User not found.");
+        }
+        return "redirect:/admin/ban";
+    }
+
+    @GetMapping("/ban")
+    public String viewBannedUsers(Model model) {
+        List<User> bannedUsers = userService.getAllBannedUsers();
+        List<User> activeUsers = userService.getAllActiveUsers();
+        model.addAttribute("bannedUsers", bannedUsers);
+        model.addAttribute("activeUsers", activeUsers);
+        return "admin-banned-users";
+    }
+} 
+
+

@@ -3,7 +3,6 @@ package com.example.model;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 @Entity
@@ -22,15 +21,18 @@ public class User {
 
     @Column(nullable = false)
     private boolean active;
-    
+
     @Column(nullable = false)
     private boolean pendingApproval;
-    
+
     @Column(nullable = false)
     private boolean surveyCompleted = false;
 
     @Column(nullable = true)
     private String recommendedSecurityCategory;
+
+    @Column(nullable = false)
+    private boolean banned = false; // ✅ renamed to lowercase
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SurveyResponse> surveyResponses;
@@ -43,7 +45,7 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    //  Default Constructor
+    // Default Constructor
     public User() {}
 
     // Constructor with fields
@@ -55,21 +57,21 @@ public class User {
         this.recommendedSecurityCategory = null;
     }
 
-    //  Getters and Setters
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    
-    public boolean isActive() { return active; }
-    public void setActive(boolean active) { this.active = active; }
-    
-    public boolean isPendingApproval() {return pendingApproval;}
-    public void setPendingApproval(boolean pendingApproval) {this.pendingApproval = pendingApproval;}
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
+
+    public boolean isPendingApproval() { return pendingApproval; }
+    public void setPendingApproval(boolean pendingApproval) { this.pendingApproval = pendingApproval; }
 
     public boolean isSurveyCompleted() { return surveyCompleted; }
     public void setSurveyCompleted(boolean surveyCompleted) { this.surveyCompleted = surveyCompleted; }
@@ -79,17 +81,17 @@ public class User {
         this.recommendedSecurityCategory = recommendedSecurityCategory;
     }
 
+    public boolean isBanned() { return banned; }
+    public void setBanned(boolean banned) { this.banned = banned; }
+
     public List<SurveyResponse> getSurveyResponses() { return surveyResponses; }
     public void setSurveyResponses(List<SurveyResponse> surveyResponses) { this.surveyResponses = surveyResponses; }
 
     public Set<Role> getRoles() { return roles; }
-    
-    //  Prevents null roles being assigned
     public void setRoles(Set<Role> roles) {
         this.roles = (roles != null) ? roles : new HashSet<>();
     }
 
-    //  Role Management
     public void addRole(Role role) {
         this.roles.add(role);
     }
@@ -110,6 +112,8 @@ public class User {
                 ", roles=" + roles +
                 ", surveyCompleted=" + surveyCompleted +
                 ", recommendedSecurityCategory='" + recommendedSecurityCategory + '\'' +
+                ", banned=" + banned +
                 '}';
     }
 }
+

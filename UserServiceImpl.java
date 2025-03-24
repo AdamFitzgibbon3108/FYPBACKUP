@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         System.out.println("📋 Fetching all users with roles...");
-        return userRepository.findAllWithRoles(); // Ensures roles are loaded properly
+        return userRepository.findAllWithRoles();
     }
 
     @Override
@@ -56,14 +56,12 @@ public class UserServiceImpl implements UserService {
         user.setUsername(normalizedUsername);
         user.setPassword(hashedPassword);
 
-        // Ensure at least a default role is assigned
         if (user.getRoles().isEmpty()) {
             Role defaultRole = roleRepository.findByName("USER")
                     .orElseThrow(() -> new RuntimeException("Default role USER not found in DB"));
             user.getRoles().add(defaultRole);
         }
 
-        // Save user
         User savedUser = userRepository.save(user);
         userRepository.flush();
 
@@ -129,7 +127,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    // 🔍 NEW: Get performance for all users
     @Override
     public List<UserPerformanceDTO> getAllUserPerformance() {
         List<User> users = userRepository.findAll();
@@ -154,4 +151,55 @@ public class UserServiceImpl implements UserService {
 
         return performanceList;
     }
+
+    // 🚫 Ban user
+    @Override
+    public void banUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setBanned(true);
+        userRepository.save(user);
+        System.out.println("🔒 User banned: " + user.getUsername());
+    }
+
+    //  Unban user
+    @Override
+    public void unbanUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setBanned(false);
+        userRepository.save(user);
+        System.out.println("🔓 User unbanned: " + user.getUsername());
+    }
+
+    //  Get all banned users
+    @Override
+    public List<User> getAllBannedUsers() {
+        return userRepository.findByBannedTrue();
+    }
+
+    //  Check if user is banned
+    @Override
+    public boolean isUserBanned(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::isBanned)
+                .orElse(false);
+    }
+
+    // ✅ Add missing methods to match interface
+    @Override
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
+    @Override
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+	@Override
+	public List<User> getAllActiveUsers() {
+		
+		return userRepository.findAllBannedUsers();
+	}
 }
