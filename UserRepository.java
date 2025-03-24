@@ -24,24 +24,43 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("UPDATE User u SET u.recommendedSecurityCategory = :category WHERE u.username = :username")
     void updateRecommendedSecurityCategory(@Param("username") String username, @Param("category") String category);
 
-    //  Fetch user along with roles
+    // Fetch user along with roles
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username")
     Optional<User> findByUsernameWithRoles(@Param("username") String username);
 
-    //  Fetch all users along with their roles (NEW FIX)
+    // Fetch all users along with their roles
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles")
     List<User> findAllWithRoles();
 
-    //  Count users by role
+    // Count users by role
     @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :roleName")
     long countUsersByRole(@Param("roleName") String roleName);
 
-    //  Count active users
+    // Count active users
     @Query("SELECT COUNT(u) FROM User u WHERE u.active = true")
     long countActiveUsers();
 
-    //  Count users pending approval
+    // Count users pending approval
     @Query("SELECT COUNT(u) FROM User u WHERE u.pendingApproval = true")
     long countPendingUsers();
-}
 
+    // Ban user
+    @Transactional
+    @Modifying
+    @Query("UPDATE User u SET u.banned = true WHERE u.id = :userId")
+    void banUserById(@Param("userId") Long userId);
+
+    // Unban user
+    @Transactional
+    @Modifying
+    @Query("UPDATE User u SET u.banned = false WHERE u.id = :userId")
+    void unbanUserById(@Param("userId") Long userId);
+
+    // List all banned users
+    @Query("SELECT u FROM User u WHERE u.banned = true")
+    List<User> findAllBannedUsers();
+    
+ // Auto-generated Spring query for banned users
+    List<User> findByBannedTrue();
+
+}
