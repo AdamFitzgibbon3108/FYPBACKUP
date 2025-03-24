@@ -1,10 +1,15 @@
 package com.example.controller;
 
+import dto.UserPerformanceDTO;
 import com.example.model.Question;
 import com.example.model.Questionnaire;
+import com.example.model.QuizResult;
 import com.example.model.User;
 import com.example.service.AdminService;
 import com.example.service.AdminService.AdminDashboardStats;
+import com.example.service.QuizResultService;
+import com.example.service.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,7 +30,13 @@ public class AdminDashboardController {
     @Autowired
     private AdminService adminService;
 
-    //  Admin Dashboard UI
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private QuizResultService quizResultService;
+
+    // Admin Dashboard UI
     @GetMapping("/dashboard")
     public String adminDashboard(Model model, Principal principal) {
         model.addAttribute("adminName", principal.getName());
@@ -38,42 +49,43 @@ public class AdminDashboardController {
         return "admin-dashboard";
     }
 
-    //  Manage Questions Page
+    // Manage Questions Page
     @GetMapping("/questions")
     public String manageQuestions(Model model) {
         model.addAttribute("questions", adminService.getAllQuestions());
         return "manage-questions";
     }
 
-    //  Manage Questionnaires Page
+    // Manage Questionnaires Page
     @GetMapping("/questionnaires")
     public String manageQuestionnaires(Model model) {
         model.addAttribute("questionnaires", adminService.getAllQuestionnaires());
         return "manage-questionnaires";
     }
 
-
-    //  API: Get all questions
+    // API: Get all questions
     @GetMapping("/api/questions")
     public ResponseEntity<List<Question>> getAllQuestions() {
         return ResponseEntity.ok(adminService.getAllQuestions());
     }
 
-    //  API: Get all questionnaires
+    // API: Get all questionnaires
     @GetMapping("/api/questionnaires")
     public ResponseEntity<List<Questionnaire>> getAllQuestionnaires() {
         return ResponseEntity.ok(adminService.getAllQuestionnaires());
     }
 
-    //  API: Get a specific questionnaire by ID
+    // API: Get a specific questionnaire by ID
     @GetMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<Questionnaire> getQuestionnaireById(@PathVariable Long questionnaireId) {
         return ResponseEntity.ok(adminService.getQuestionnaireById(questionnaireId));
     }
 
-    //  API: Create a new questionnaire
+    // API: Create a new questionnaire
     @PostMapping("/api/questionnaires")
-    public ResponseEntity<Questionnaire> createQuestionnaire(@RequestBody Map<String, Object> requestData, Authentication authentication) {
+    public ResponseEntity<Questionnaire> createQuestionnaire(
+            @RequestBody Map<String, Object> requestData,
+            Authentication authentication) {
         String title = (String) requestData.get("title");
         String description = (String) requestData.get("description");
         String adminUsername = authentication.getName();
@@ -81,7 +93,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.createQuestionnaire(title, description, adminUsername));
     }
 
-    //  API: Assign questions to a questionnaire
+    // API: Assign questions to a questionnaire
     @PostMapping("/api/questionnaires/{questionnaireId}/assign")
     public ResponseEntity<Questionnaire> assignQuestionsToQuestionnaire(
             @PathVariable Long questionnaireId,
@@ -89,7 +101,7 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.assignQuestionsToQuestionnaire(questionnaireId, questionIds));
     }
 
-    //  API: Remove questions from a questionnaire
+    // API: Remove questions from a questionnaire
     @PostMapping("/api/questionnaires/{questionnaireId}/remove")
     public ResponseEntity<Questionnaire> removeQuestionsFromQuestionnaire(
             @PathVariable Long questionnaireId,
@@ -97,27 +109,29 @@ public class AdminDashboardController {
         return ResponseEntity.ok(adminService.removeQuestionsFromQuestionnaire(questionnaireId, questionIds));
     }
 
-    //  API: Delete a questionnaire
+    // API: Delete a questionnaire
     @DeleteMapping("/api/questionnaires/{questionnaireId}")
     public ResponseEntity<String> deleteQuestionnaire(@PathVariable Long questionnaireId) {
         adminService.deleteQuestionnaire(questionnaireId);
         return ResponseEntity.ok("Questionnaire deleted successfully.");
     }
 
-    //  API: Get all users
+    // API: Get all users
     @GetMapping("/api/users")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(adminService.getAllUsers());
     }
 
-    //  API: Update user details
+    // API: Update user details
     @PutMapping("/api/users/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @RequestBody Map<String, Object> updates) {
+    public ResponseEntity<User> updateUser(
+            @PathVariable Long userId,
+            @RequestBody Map<String, Object> updates) {
         User updatedUser = adminService.updateUser(userId, updates);
         return ResponseEntity.ok(updatedUser);
     }
 
-    //  API: Manage user roles (Assign/Remove in a single method)
+    // API: Manage user roles (Assign/Remove in a single method)
     @PostMapping("/api/users/{userId}/roles")
     public ResponseEntity<String> updateUserRoles(
             @PathVariable Long userId,
@@ -132,11 +146,29 @@ public class AdminDashboardController {
         }
     }
 
-    //  API: Delete a user
+    // API: Delete a user
     @DeleteMapping("/api/users/{userId}")
     public ResponseEntity<String> deleteUser(@PathVariable Long userId) {
         adminService.deleteUser(userId);
         return ResponseEntity.ok("User deleted successfully.");
     }
-}
 
+    // ✅ NEW: Admin Performance Viewer – List all users' performance
+    @GetMapping("/performance")
+    public String viewAllUserPerformance(Model model) {
+        List<UserPerformanceDTO> performanceList = userService.getAllUserPerformance();
+        model.addAttribute("performanceList", performanceList);
+        return "admin-performance"; // Create this HTML page
+    }
+
+    // ✅ NEW: Admin Performance Viewer – View individual user's quiz history
+    @GetMapping("/performance/{userId}")
+    public String viewUserQuizHistory(@PathVariable Long userId, Model model) {
+        List<QuizResult> results = quizResultService.findByUserId(userId);
+        User user = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        model.addAttribute("user", user);
+        model.addAttribute("results", results);
+        return "admin-user-quiz-history"; // Create this HTML page
+    }
+}

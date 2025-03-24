@@ -1,26 +1,31 @@
 package com.example.service;
 
+import dto.UserPerformanceDTO;
+import com.example.model.QuizResult;
 import com.example.model.Role;
 import com.example.model.User;
+import com.example.repository.QuizResultRepository;
 import com.example.repository.RoleRepository;
 import com.example.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    
-    @Autowired RoleRepository roleRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private QuizResultRepository quizResultRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -51,21 +56,20 @@ public class UserServiceImpl implements UserService {
         user.setUsername(normalizedUsername);
         user.setPassword(hashedPassword);
 
-        //  Ensure at least a default role is assigned
+        // Ensure at least a default role is assigned
         if (user.getRoles().isEmpty()) {
-            Role defaultRole = roleRepository.findByName("USER")  // Fetch the default role
+            Role defaultRole = roleRepository.findByName("USER")
                     .orElseThrow(() -> new RuntimeException("Default role USER not found in DB"));
             user.getRoles().add(defaultRole);
         }
 
         // Save user
         User savedUser = userRepository.save(user);
-        userRepository.flush();  // Ensures transaction commits
+        userRepository.flush();
 
         System.out.println("✅ User successfully saved with ID: " + savedUser.getId());
         return savedUser;
     }
-
 
     @Override
     @Transactional
@@ -75,12 +79,10 @@ public class UserServiceImpl implements UserService {
 
         existingUser.setUsername(updatedUser.getUsername());
 
-        //  Only update the password if it's provided
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
-        //   Ensure roles are managed entities before assigning
         Set<Role> managedRoles = new HashSet<>();
         for (Role role : updatedUser.getRoles()) {
             Role managedRole = roleRepository.findByName(role.getName())
@@ -91,8 +93,6 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(existingUser);
     }
-
-
 
     @Override
     public void deleteUser(Long id) {
@@ -127,5 +127,31 @@ public class UserServiceImpl implements UserService {
             System.err.println("❌ User not found for survey completion: " + userId);
             throw new RuntimeException("User not found with id: " + userId);
         }
+    }
+
+    // 🔍 NEW: Get performance for all users
+    @Override
+    public List<UserPerformanceDTO> getAllUserPerformance() {
+        List<User> users = userRepository.findAll();
+        List<UserPerformanceDTO> performanceList = new ArrayList<>();
+
+        for (User user : users) {
+            List<QuizResult> results = quizResultRepository.findByUserId(user.getId());
+
+            int totalQuizzes = results.size();
+            double avgScore = results.stream()
+                    .mapToInt(QuizResult::getTotalScore)
+                    .average()
+                    .orElse(0.0);
+
+            performanceList.add(new UserPerformanceDTO(
+                    user.getId(),
+                    user.getUsername(),
+                    totalQuizzes,
+                    avgScore
+            ));
+        }
+
+        return performanceList;
     }
 }
