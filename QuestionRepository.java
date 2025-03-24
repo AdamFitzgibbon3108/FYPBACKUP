@@ -54,6 +54,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("SELECT DISTINCT q.role FROM Question q")
     List<String> findDistinctRoles();
 
+    
+    List<Question> findByQuestionTextContainingIgnoreCase(String keyword);
+    
+    
     /**
      * Fetches distinct categories from the questions table.
      */

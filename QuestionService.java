@@ -70,9 +70,6 @@ public class QuestionService {
         return questionRepository.findDistinctCategories();
     }
 
-    /**
-     * ✅ Group all security controls by categoryGroup
-     */
     public Map<String, List<String>> getGroupedSecurityControls() {
         List<SecurityControl> allControls = securityControlRepository.findAll();
         Map<String, List<String>> grouped = new LinkedHashMap<>();
@@ -84,6 +81,10 @@ public class QuestionService {
         }
 
         return grouped;
+    }
+
+    public List<Question> searchByKeyword(String keyword) {
+        return questionRepository.findByQuestionTextContainingIgnoreCase(keyword);
     }
 
     private Map<String, Object> convertQuestionToMap(Question question) {

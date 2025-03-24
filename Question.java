@@ -10,6 +10,9 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "citation_url")
+    private String citationUrl;
+    
     @Column(name = "question_text", nullable = false)
     private String text;
 
@@ -96,7 +99,10 @@ public class Question {
 
     public String getCorrectAnswer() { return correctAnswer; }
     public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
-
+    
+    public String getCitationUrl() {return citationUrl;}
+    public void setCitationUrl(String citationUrl) {this.citationUrl = citationUrl;}
+    
     public String getOptions() { return options; }
     public void setOptions(String options) { this.options = options; }
 }

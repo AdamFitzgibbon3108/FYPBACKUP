@@ -111,6 +111,17 @@
             flex-direction: column;
             gap: 10px;
         }
+
+        .citation-link {
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+            display: block;
+            color: #58a6ff;
+        }
+
+        .citation-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -130,6 +141,13 @@
                     <li th:each="question, questionStat : ${questions}">
                         <div>
                             <strong th:text="${questionStat.index + 1} + '. ' + ${question.text}"></strong>
+                            
+                            <!-- Citation Source -->
+                            <div th:if="${question.citationUrl}">
+                                <a th:href="${question.citationUrl}" class="citation-link" target="_blank">
+                                    Source: <span th:text="${question.framework}"></span>
+                                </a>
+                            </div>
                         </div>
 
                         <!-- TRUE/FALSE -->
@@ -164,8 +182,3 @@
     </div>
 </body>
 </html>
-
-
-
-
-

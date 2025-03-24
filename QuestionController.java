@@ -44,7 +44,68 @@ public class QuestionController {
     private QuizResultRepository quizResultRepository;
 
     @Autowired
-    private SecurityControlRepository securityControlRepository; // 🔹 NEW
+    private SecurityControlRepository securityControlRepository;
+
+    // Display all questions + categories
+    @GetMapping("/manage")
+    public String manageQuestions(Model model) {
+        model.addAttribute("questions", questionService.getAllQuestions());
+        model.addAttribute("categories", questionService.getAllCategories());
+        return "manage-questions";
+    }
+
+    // Add a new question
+    @PostMapping("/add")
+    public String addQuestion(@RequestParam String question_text,
+                              @RequestParam String options,
+                              @RequestParam String category) {
+        Question question = new Question();
+        question.setQuestionText(question_text);
+        question.setOptions(options);
+        question.setCategory(category);
+        questionRepository.save(question);
+        return "redirect:/questions/manage";
+    }
+
+    // Update a question inline
+    @PostMapping("/update/{id}")
+    public String updateQuestion(@PathVariable Long id,
+                                 @RequestParam String question_text,
+                                 @RequestParam String options) {
+        Optional<Question> optional = questionRepository.findById(id);
+        if (optional.isPresent()) {
+            Question question = optional.get();
+            question.setQuestionText(question_text);
+            question.setOptions(options);
+            questionRepository.save(question);
+        }
+        return "redirect:/questions/manage";
+    }
+
+    // Delete a question inline
+    @PostMapping("/delete/{id}")
+    public String deleteQuestion(@PathVariable Long id) {
+        questionRepository.deleteById(id);
+        return "redirect:/questions/manage";
+    }
+
+    // Search by keyword
+    @GetMapping("/search")
+    public String searchQuestions(@RequestParam String keyword, Model model) {
+        List<Question> results = questionService.searchByKeyword(keyword);
+        model.addAttribute("questions", results);
+        model.addAttribute("categories", questionService.getAllCategories());
+        return "manage-questions";
+    }
+
+    // Filter by category
+    @GetMapping("/filter")
+    public String filterByCategory(@RequestParam String category, Model model) {
+        List<Question> results = questionService.getQuestionsByCategory(category);
+        model.addAttribute("questions", results);
+        model.addAttribute("categories", questionService.getAllCategories());
+        return "manage-questions";
+    }
 
     // 🔹 NEW: Get grouped categories
     @GetMapping("/grouped-categories")
@@ -59,12 +120,6 @@ public class QuestionController {
                         TreeMap::new, // sorted by group name
                         Collectors.mapping(SecurityControl::getName, Collectors.toList())
                 ));
-    }
-
-    @GetMapping("/manage")
-    public String manageQuestions(Model model) {
-        model.addAttribute("questions", questionService.getAllQuestions());
-        return "manage-questions";
     }
 
     @GetMapping("/roles")
