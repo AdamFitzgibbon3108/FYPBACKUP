@@ -180,6 +180,7 @@ public class AdminDashboardController {
         model.addAttribute("activeUsers", activeUsers);
         return "admin-banned-users";
     }
-} 
+}
+
 
 

@@ -62,5 +62,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     
  // Auto-generated Spring query for banned users
     List<User> findByBannedTrue();
+    
+    List<User> findByBannedFalse(); // ✅ For active users
+
+    
 
 }

@@ -16,7 +16,7 @@ public class Question {
     @Column(name = "question_text", nullable = false)
     private String text;
 
-    @Column(name = "question_text", insertable = false, updatable = false) // ✅ Prevents duplicate mapping issues
+    @Column(name = "question_text", insertable = false, updatable = false) //  Prevents duplicate mapping issues
     private String questionText;
 
     @Column(name = "category")

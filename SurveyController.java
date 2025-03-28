@@ -36,7 +36,7 @@ public class SurveyController {
     public String showSurveyPage(Model model, Principal principal) {
         String username = (principal != null) ? principal.getName() : "Guest";
 
-        // ✅ NEW: Redirect if user has already completed the survey
+        //  NEW: Redirect if user has already completed the survey
         if (surveyService.hasUserCompletedSurvey(username)) {
             logger.info("User " + username + " has already completed the survey. Redirecting...");
             return "redirect:/questionnaire/selection";

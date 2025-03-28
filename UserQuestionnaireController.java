@@ -47,11 +47,11 @@ public class UserQuestionnaireController {
             selectedQuestions = Collections.emptyList();
         }
 
-        // ✅ Fetch the questionnaire object from the DB
+        //  Fetch the questionnaire object from the DB
         Questionnaire questionnaire = questionnaireRepository.findById(questionnaireId)
                 .orElseThrow(() -> new IllegalArgumentException("Questionnaire not found!"));
 
-        // ✅ Call updated service method
+        //  Call updated service method
         return userQuestionnaireService.createUserQuestionnaire(username, selectedQuestions);
     }
 

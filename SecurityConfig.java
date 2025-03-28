@@ -60,7 +60,7 @@ public class SecurityConfig {
     }
 
     /**
-     * ✅ Custom Success Handler: Redirect users based on their role.
+     * Custom Success Handler: Redirect users based on their role.
      */
     @Bean
     public AuthenticationSuccessHandler customAuthenticationSuccessHandler() {

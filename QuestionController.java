@@ -107,7 +107,7 @@ public class QuestionController {
         return "manage-questions";
     }
 
-    // 🔹 NEW: Get grouped categories
+    //  Get grouped categories
     @GetMapping("/grouped-categories")
     @ResponseBody
     public Map<String, List<String>> getGroupedCategories() {

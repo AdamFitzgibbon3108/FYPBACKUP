@@ -63,6 +63,9 @@ public class RegistrationService {
         roles.add(role);
         user.setRoles(roles);
 
+        user.setBanned(false); // Explicitly set banned to false
+        user.setActive(true); // Or false depending on your logic
+        user.setPendingApproval(true); // Or false if you auto-approve
         userRepository.save(user);
         logger.info("✅ User '{}' registered successfully with role '{}'", user.getUsername(), roleName);
 

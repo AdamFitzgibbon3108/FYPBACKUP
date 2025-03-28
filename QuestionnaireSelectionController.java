@@ -86,7 +86,7 @@ public class QuestionnaireSelectionController {
 
         System.out.println("✅ Successfully retrieved " + selectedQuestions.size() + " questions for the custom questionnaire.");
 
-        // ✅ Use the 2-parameter version of createUserQuestionnaire
+        //  Use the 2-parameter version of createUserQuestionnaire
         UserQuestionnaire userQuestionnaire = userQuestionnaireService.createUserQuestionnaire(username, selectedQuestionIds);
 
         model.addAttribute("questions", selectedQuestions);

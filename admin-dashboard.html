@@ -6,6 +6,7 @@
     <title>Admin Dashboard | ThreatLens</title>
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
@@ -13,29 +14,23 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(to right, #0f172a, #1e293b);
             color: white;
-            display: flex;
-            height: 100vh;
             margin: 0;
-            justify-content: center;
-            align-items: center;
+            padding: 0;
         }
 
         .container {
             display: flex;
-            width: 90%;
-            max-width: 1400px;
-            justify-content: space-between;
-            align-items: center;
-            gap: 40px;
+            width: 100%;
+            min-height: 100vh;
         }
 
         .sidebar {
-            width: 320px;
+            width: 300px;
             background: rgba(51, 65, 85, 0.85);
             padding: 30px;
-            border-radius: 15px;
+            border-radius: 0 15px 15px 0;
             backdrop-filter: blur(10px);
-            box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.4);
+            box-shadow: 5px 0 12px rgba(0, 0, 0, 0.4);
             text-align: center;
         }
 
@@ -60,10 +55,10 @@
             align-items: center;
             color: white;
             text-decoration: none;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             background: rgba(37, 99, 235, 0.85);
-            padding: 14px;
+            padding: 12px;
             border-radius: 10px;
             justify-content: center;
             transition: all 0.3s ease-in-out;
@@ -85,15 +80,15 @@
 
         .dashboard {
             flex: 1;
+            padding: 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
         }
 
         .dashboard-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .dashboard-header h1 {
@@ -104,98 +99,100 @@
 
         .stats-container {
             display: flex;
-            gap: 40px;
+            gap: 30px;
             justify-content: center;
             flex-wrap: wrap;
-            width: 100%;
+            margin-bottom: 30px;
         }
 
         .stats-card {
             background: rgba(71, 85, 105, 0.9);
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
             text-align: center;
-            width: 250px;
-            height: 160px;
+            width: 220px;
+            height: 150px;
             box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
 
-        .stats-card:hover {
-            transform: scale(1.08);
-        }
-
         .stats-card i {
-            font-size: 35px;
+            font-size: 28px;
             color: #58a6ff;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .stats-card h3 {
             margin: 0;
-            font-size: 18px;
+            font-size: 16px;
             color: #58a6ff;
         }
 
         .stats-card p {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: bold;
             margin-top: 5px;
         }
 
-        .stats-card a {
-            margin-top: 10px;
-            font-size: 16px;
+        .chart-section {
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(30, 41, 59, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        .chart-section h3 {
             color: #58a6ff;
-            text-decoration: underline;
+            margin-bottom: 10px;
+            font-size: 20px;
         }
 
         .activity-log {
-            margin-top: 40px;
             background: rgba(51, 65, 85, 0.9);
-            padding: 25px;
+            padding: 20px;
             border-radius: 15px;
             width: 100%;
-            max-width: 700px;
+            max-width: 600px;
             text-align: center;
             box-shadow: 5px 5px 12px rgba(0, 0, 0, 0.4);
         }
 
         .activity-log h3 {
             color: #58a6ff;
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .activity-log ul {
             list-style: none;
             padding: 0;
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         .activity-log ul li {
             background: rgba(71, 85, 105, 0.9);
-            padding: 14px;
+            padding: 10px;
             margin: 5px 0;
             border-radius: 10px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.3);
-            font-size: 16px;
         }
 
         .activity-log ul li i {
-            margin-right: 10px;
+            margin-right: 8px;
             color: #58a6ff;
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- Sidebar -->
     <div class="sidebar">
         <h2>ThreatLens</h2>
         <ul>
@@ -206,7 +203,6 @@
         </ul>
     </div>
 
-    <!-- Dashboard -->
     <div class="dashboard">
         <div class="dashboard-header">
             <h1>Welcome, <span th:text="${adminName}">Admin</span>!</h1>
@@ -236,6 +232,11 @@
             </div>
         </div>
 
+        <div class="chart-section">
+            <h3><i class="fas fa-chart-pie"></i> Questionnaires Taken per Role</h3>
+            <canvas id="roleChart" width="400" height="300"></canvas>
+        </div>
+
         <div class="activity-log">
             <h3><i class="fas fa-history"></i> Recent Activity</h3>
             <ul>
@@ -247,5 +248,39 @@
         </div>
     </div>
 </div>
+
+<script>
+    const ctx = document.getElementById('roleChart');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['General', 'Developer', 'Analyst', 'Manager'],
+            datasets: [{
+                label: 'Questionnaires Taken',
+                data: [40, 25, 20, 15], // Replace with backend values
+                backgroundColor: ['#3b82f6', '#10b981', '#facc15', '#f87171'],
+                borderColor: '#1e293b',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'white',
+                        font: {
+                            size: 14,
+                            weight: 'bold'
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>
+
+
