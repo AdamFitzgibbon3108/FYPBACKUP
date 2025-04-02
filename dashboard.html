@@ -177,7 +177,6 @@
             <p>What would you like to do today?</p>
         </div>
 
-        <!-- Security Knowledge Questionnaire (Larger and Dominant Section) -->
         <div class="primary-card">
             <h2>Undertake a Security Knowledge Questionnaire</h2>
             <p>Test your knowledge across various cybersecurity domains and get tailored insights for your role and risk level.</p>
@@ -186,7 +185,6 @@
             </a>
         </div>
 
-        <!-- Other Dashboard Features -->
         <div class="actions">
             <div class="action-card">
                 <h3>Profile</h3>
@@ -217,6 +215,15 @@
                 <p>Stay ahead with real-time updates on emerging cybersecurity threats.</p>
                 <a href="/alerts">
                     <button>View Alerts</button>
+                </a>
+            </div>
+
+            <!-- 🔥 New: User Performance Summary -->
+            <div class="action-card">
+                <h3>Performance Summary</h3>
+                <p>Review your average scores and quiz participation history.</p>
+                <a th:href="@{/user/performance}">
+                    <button>View My Performance</button>
                 </a>
             </div>
         </div>

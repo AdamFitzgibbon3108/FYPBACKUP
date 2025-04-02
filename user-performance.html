@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Performance</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            margin: 0;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #1e40af;
+            margin-bottom: 30px;
+        }
+
+        .stats-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .stats-box h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #475569;
+        }
+
+        .stats-box p {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 5px 0 0 0;
+        }
+
+        .grid {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .chart-section {
+            margin-top: 40px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .no-data {
+            text-align: center;
+            margin-top: 50px;
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            font-weight: bold;
+            text-decoration: none;
+            color: #1d4ed8;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Performance Summary</h1>
+
+    <div th:if="${performance.totalQuizzes > 0}">
+        <div class="grid">
+            <div class="stats-box">
+                <h2>Total Quizzes Taken</h2>
+                <p th:text="${performance.totalQuizzes}">0</p>
+            </div>
+            <div class="stats-box">
+                <h2>Average Score</h2>
+                <p th:text="${#numbers.formatDecimal(performance.averageScore, 1, 2)}">0.0</p>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <canvas id="userPerformanceChart" height="100"></canvas>
+        </div>
+    </div>
+
+    <div class="no-data" th:if="${performance.totalQuizzes == 0}">
+        <p>You haven't taken any quizzes yet. Once you complete a few, your performance summary will appear here!</p>
+    </div>
+
+    <a href="/dashboard" class="back-link">⬅ Back to Dashboard</a>
+
+    <script th:if="${performance.totalQuizzes > 0}">
+        document.addEventListener("DOMContentLoaded", function () {
+            new Chart(document.getElementById('userPerformanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['Average Score'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [/*[[${performance.averageScore}]]*/ [[${performance.averageScore}]]],
+                        backgroundColor: 'rgba(37, 99, 235, 0.6)',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
