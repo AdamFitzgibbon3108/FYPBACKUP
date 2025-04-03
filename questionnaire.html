@@ -125,7 +125,6 @@
     </style>
 </head>
 <body>
-    <!-- App Title -->
     <a href="/" class="app-title">ThreatLens</a>
 
     <div class="container">
@@ -151,7 +150,7 @@
                         </div>
 
                         <!-- TRUE/FALSE -->
-                        <div th:if="${question.questionType == T(com.example.model.QuestionType).TRUE_FALSE}">
+                        <div th:if="${question.questionType?.name() == 'TRUE_FALSE'}">
                             <div class="option-container">
                                 <label>
                                     <input type="radio" th:name="'question_' + ${question.id}" value="True" required />
@@ -165,7 +164,7 @@
                         </div>
 
                         <!-- MULTIPLE CHOICE -->
-                        <div th:if="${question.questionType == T(com.example.model.QuestionType).MULTIPLE_CHOICE}">
+                        <div th:if="${question.questionType?.name() == 'MULTIPLE_CHOICE'}">
                             <div th:each="option : ${#strings.arraySplit(question.options, ',')}" class="option-container">
                                 <label>
                                     <input type="radio" th:name="'question_' + ${question.id}" th:value="${option}" required />
