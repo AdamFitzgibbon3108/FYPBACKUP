@@ -27,23 +27,27 @@ public class ResponseService {
     /**
      * Submits a response for a user and automatically assigns a score.
      */
-    public Response submitResponse(Long questionId, Long userId, String answer) {
+    public Response submitResponse(Long questionId, Long userId, String selectedAnswer) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid question ID"));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
 
-        // Check if the answer is correct
-        boolean isCorrect = answer.equalsIgnoreCase(question.getCorrectAnswer());
-        int score = isCorrect ? question.getScore() : 0;  // Assign score based on correctness
+        String correctAnswer = question.getCorrectAnswer();
+        boolean isCorrect = selectedAnswer.equalsIgnoreCase(correctAnswer);
+        int score = isCorrect ? question.getScore() : 0;
 
         Response response = new Response();
         response.setQuestion(question);
         response.setUser(user);
-        response.setAnswer(answer);
+        response.setSelectedAnswer(selectedAnswer);
+        response.setCorrectAnswer(correctAnswer);
+        response.setCorrect(isCorrect);
         response.setScore(score);
-        response.setTimestamp(LocalDateTime.now()); // ✅ Keep timestamp
+        response.setTimestamp(LocalDateTime.now());
+        response.setRole(question.getRole());
+        response.setCategory(question.getCategory());
 
         return responseRepository.save(response);
     }
@@ -69,10 +73,13 @@ public class ResponseService {
         return responseRepository.findByQuestionId(questionId);
     }
 
-	public List<Response> getResponsesByUsername(String username) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    /**
+     * Retrieves responses by a user's username.
+     */
+    public List<Response> getResponsesByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        return responseRepository.findByUserId(user.getId());
+    }
 }
-
 

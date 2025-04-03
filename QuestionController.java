@@ -10,6 +10,7 @@ import com.example.repository.QuizResultRepository;
 import com.example.repository.ResponseRepository;
 import com.example.repository.UserRepository;
 import com.example.service.QuestionService;
+import com.example.service.ScoringService;
 import com.example.repository.SecurityControlRepository; // 🔹 NEW
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/questions")
 public class QuestionController {
 
+	@Autowired
+	private ScoringService scoringService;
+
+
+	
     @Autowired
     private QuestionRepository questionRepository;
 
@@ -173,6 +179,8 @@ public class QuestionController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
+        
+        
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
             model.addAttribute("error", "User not found.");
@@ -190,6 +198,7 @@ public class QuestionController {
 
         List<Response> savedResponses = new ArrayList<>();
         int totalScore = 0;
+        int totalQuestions = 0;
 
         for (Map.Entry<String, String> entry : requestBody.entrySet()) {
             if (entry.getKey().startsWith("question_")) {
@@ -204,15 +213,17 @@ public class QuestionController {
 
                         int score = correctAnswer.trim().equalsIgnoreCase(answer.trim()) ? 1 : 0;
                         totalScore += score;
+                        totalQuestions++;
 
                         Response response = new Response();
                         response.setUser(user);
                         response.setQuestion(question);
-                        response.setAnswer(answer);
+                        response.setScore(score);
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
                         response.setCategory(selectedCategory);
-                        response.setScore(score);
+                        response.setSelectedAnswer(answer); // If used
+                        response.setCorrectAnswer(correctAnswer); // If used
 
                         responseRepository.save(response);
                         savedResponses.add(response);
@@ -221,19 +232,37 @@ public class QuestionController {
             }
         }
 
-        if (!savedResponses.isEmpty()) {
-            QuizResult quizResult = new QuizResult(user, totalScore, savedResponses.size(), selectedCategory, selectedRole);
-            quizResultRepository.save(quizResult);
-        } else {
-            model.addAttribute("error", "No responses recorded.");
-            return "result";
-        }
+        // Compute metrics
+        double percentage = ((double) totalScore / totalQuestions) * 100.0;
+        boolean passed = percentage >= 80.0;
 
-        model.addAttribute("score", totalScore);
-        model.addAttribute("total", savedResponses.size());
+        // Store quiz result
+        QuizResult result = new QuizResult();
+        result.setUser(user);
+        result.setTotalScore(totalScore);
+        result.setTotalQuestions(totalQuestions);
+        result.setCategory(selectedCategory);
+        result.setRole(selectedRole);
+        result.setCompletedAt(LocalDateTime.now());
+        result.setScorePercentage(percentage);
+        result.setPassed(passed);
+        quizResultRepository.save(result);
+
+        // Recommendations and training
+        String recommendation = scoringService.generateRecommendation(percentage);
+        String trainingProgram = scoringService.suggestTrainingProgram(percentage);
+
+        // Set attributes for the result view
+        model.addAttribute("username", username);
         model.addAttribute("role", selectedRole);
         model.addAttribute("category", selectedCategory);
+        model.addAttribute("score", totalScore);
+        model.addAttribute("percentageScore", percentage);
+        model.addAttribute("passed", passed);
+        model.addAttribute("recommendation", recommendation);
+        model.addAttribute("trainingProgram", trainingProgram);
+        model.addAttribute("responses", savedResponses);
 
-        return "result";
+        return "result"; // Must match result.html
     }
 }

@@ -29,6 +29,15 @@ public class QuizResult {
     @Column(nullable = false)
     private LocalDateTime completedAt;
 
+    @Column(nullable = false)
+    private Double scorePercentage;
+
+    @Column(nullable = false)
+    private Boolean passed;
+
+    @Column(columnDefinition = "TEXT")
+    private String recommendations;
+
     public QuizResult() {}
 
     public QuizResult(User user, int totalScore, int totalQuestions, String category, String role) {
@@ -38,6 +47,13 @@ public class QuizResult {
         this.category = category;
         this.role = role;
         this.completedAt = LocalDateTime.now();
+        this.scorePercentage = calculatePercentage(totalScore, totalQuestions);
+        this.passed = this.scorePercentage >= 80;
+        this.recommendations = null; 
+    }
+
+    private double calculatePercentage(int score, int questions) {
+        return questions == 0 ? 0.0 : ((double) score / questions) * 100.0;
     }
 
     // Getters and Setters
@@ -64,6 +80,7 @@ public class QuizResult {
 
     public void setTotalScore(int totalScore) {
         this.totalScore = totalScore;
+        updateScoreData();
     }
 
     public int getTotalQuestions() {
@@ -72,6 +89,7 @@ public class QuizResult {
 
     public void setTotalQuestions(int totalQuestions) {
         this.totalQuestions = totalQuestions;
+        updateScoreData();
     }
 
     public String getCategory() {
@@ -98,6 +116,35 @@ public class QuizResult {
         this.completedAt = completedAt;
     }
 
+    public double getScorePercentage() {
+        return scorePercentage;
+    }
+
+    public void setScorePercentage(double scorePercentage) {
+        this.scorePercentage = scorePercentage;
+    }
+
+    public boolean isPassed() {
+        return passed;
+    }
+
+    public void setPassed(boolean passed) {
+        this.passed = passed;
+    }
+
+    public String getRecommendations() {
+        return recommendations;
+    }
+
+    public void setRecommendations(String recommendations) {
+        this.recommendations = recommendations;
+    }
+
+    private void updateScoreData() {
+        this.scorePercentage = calculatePercentage(this.totalScore, this.totalQuestions);
+        this.passed = this.scorePercentage >= 80;
+    }
+
     @Override
     public String toString() {
         return "QuizResult{" +
@@ -105,10 +152,14 @@ public class QuizResult {
                 ", user=" + (user != null ? user.getUsername() : "null") +
                 ", totalScore=" + totalScore +
                 ", totalQuestions=" + totalQuestions +
+                ", scorePercentage=" + scorePercentage +
+                ", passed=" + passed +
                 ", category='" + category + '\'' +
                 ", role='" + role + '\'' +
                 ", completedAt=" + completedAt +
+                ", recommendations='" + recommendations + '\'' +
                 '}';
     }
 }
+
 
