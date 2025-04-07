@@ -29,6 +29,15 @@ public class QuizResult {
     @Column(nullable = false)
     private LocalDateTime completedAt;
 
+    @Column(nullable = true) // Marked optional in case old records had values
+    private Double scorePercentage;
+
+    @Column(nullable = false)
+    private Boolean passed;
+
+    @Column(columnDefinition = "TEXT")
+    private String recommendations;
+
     public QuizResult() {}
 
     public QuizResult(User user, int totalScore, int totalQuestions, String category, String role) {
@@ -38,6 +47,8 @@ public class QuizResult {
         this.category = category;
         this.role = role;
         this.completedAt = LocalDateTime.now();
+        this.passed = totalScore >= 12;
+        this.recommendations = null;
     }
 
     // Getters and Setters
@@ -98,6 +109,30 @@ public class QuizResult {
         this.completedAt = completedAt;
     }
 
+    public Double getScorePercentage() {
+        return scorePercentage;
+    }
+
+    public void setScorePercentage(Double scorePercentage) {
+        this.scorePercentage = scorePercentage;
+    }
+
+    public boolean isPassed() {
+        return passed;
+    }
+
+    public void setPassed(boolean passed) {
+        this.passed = passed;
+    }
+
+    public String getRecommendations() {
+        return recommendations;
+    }
+
+    public void setRecommendations(String recommendations) {
+        this.recommendations = recommendations;
+    }
+
     @Override
     public String toString() {
         return "QuizResult{" +
@@ -105,10 +140,11 @@ public class QuizResult {
                 ", user=" + (user != null ? user.getUsername() : "null") +
                 ", totalScore=" + totalScore +
                 ", totalQuestions=" + totalQuestions +
+                ", passed=" + passed +
                 ", category='" + category + '\'' +
                 ", role='" + role + '\'' +
                 ", completedAt=" + completedAt +
+                ", recommendations='" + recommendations + '\'' +
                 '}';
     }
 }
-

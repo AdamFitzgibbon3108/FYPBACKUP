@@ -42,7 +42,12 @@ public interface ResponseRepository extends JpaRepository<Response, Long> {
      */
     @Query("SELECT r FROM Response r WHERE r.question.id = ?1")
     List<Response> findByQuestionId(Long questionId);
+    
+    
+    @Query("SELECT r FROM Response r WHERE r.user.username = ?1")
+    List<Response> findByUserUsername(String username);
 
+   
     /**
      *  Debugging Query: Fetch all responses.
      */
