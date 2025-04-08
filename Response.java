@@ -26,7 +26,7 @@ public class Response {
     private String correctAnswer;
 
     @Column(nullable = false)
-    private boolean isCorrect;
+    private boolean correct;
 
     @Column(nullable = false)
     private int score;
@@ -40,14 +40,19 @@ public class Response {
     @Column(nullable = false)
     private String category;
 
+    @ManyToOne
+    @JoinColumn(name = "quiz_result_id")
+    private QuizResult quizResult;
+
     public Response() {}
 
-    public Response(Question question, User user, String selectedAnswer, String correctAnswer, int score, LocalDateTime timestamp, String role, String category) {
+    public Response(Question question, User user, String selectedAnswer, String correctAnswer,
+                    int score, LocalDateTime timestamp, String role, String category) {
         this.question = question;
         this.user = user;
         this.selectedAnswer = selectedAnswer;
         this.correctAnswer = correctAnswer;
-        this.isCorrect = selectedAnswer != null && selectedAnswer.equalsIgnoreCase(correctAnswer);
+        this.correct = selectedAnswer != null && selectedAnswer.equalsIgnoreCase(correctAnswer);
         this.score = score;
         this.timestamp = timestamp;
         this.role = role;
@@ -70,8 +75,18 @@ public class Response {
     public String getCorrectAnswer() { return correctAnswer; }
     public void setCorrectAnswer(String correctAnswer) { this.correctAnswer = correctAnswer; }
 
-    public boolean isCorrect() { return isCorrect; }
-    public void setCorrect(boolean correct) { isCorrect = correct; }
+    //  Thymeleaf-compatible getter
+    public boolean isCorrect() {
+        return correct;
+    }
+
+    public boolean getCorrect() {
+        return correct;
+    }
+
+    public void setCorrect(boolean correct) {
+        this.correct = correct;
+    }
 
     public int getScore() { return score; }
     public void setScore(int score) { this.score = score; }
@@ -85,6 +100,9 @@ public class Response {
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category != null ? category : "Unknown"; }
 
+    public QuizResult getQuizResult() { return quizResult; }
+    public void setQuizResult(QuizResult quizResult) { this.quizResult = quizResult; }
+
     @Override
     public String toString() {
         return "Response{" +
@@ -93,11 +111,12 @@ public class Response {
                 ", user=" + (user != null ? user.getUsername() : "null") +
                 ", selectedAnswer='" + selectedAnswer + '\'' +
                 ", correctAnswer='" + correctAnswer + '\'' +
-                ", isCorrect=" + isCorrect +
+                ", correct=" + correct +
                 ", score=" + score +
                 ", timestamp=" + timestamp +
                 ", role='" + role + '\'' +
                 ", category='" + category + '\'' +
+                ", quizResult=" + (quizResult != null ? quizResult.getId() : "null") +
                 '}';
     }
 }

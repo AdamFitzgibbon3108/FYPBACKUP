@@ -3,15 +3,15 @@ package com.example.controller;
 import com.example.model.Question;
 import com.example.model.QuizResult;
 import com.example.model.Response;
-import com.example.model.SecurityControl; // 🔹 NEW
+import com.example.model.SecurityControl;
 import com.example.model.User;
 import com.example.repository.QuestionRepository;
 import com.example.repository.QuizResultRepository;
 import com.example.repository.ResponseRepository;
 import com.example.repository.UserRepository;
+import com.example.repository.SecurityControlRepository;
 import com.example.service.QuestionService;
 import com.example.service.ScoringService;
-import com.example.repository.SecurityControlRepository; // 🔹 NEW
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -29,11 +29,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/questions")
 public class QuestionController {
 
-	@Autowired
-	private ScoringService scoringService;
+    @Autowired
+    private ScoringService scoringService;
 
-
-	
     @Autowired
     private QuestionRepository questionRepository;
 
@@ -113,7 +111,7 @@ public class QuestionController {
         return "manage-questions";
     }
 
-    //  Get grouped categories
+    // Get grouped categories
     @GetMapping("/grouped-categories")
     @ResponseBody
     public Map<String, List<String>> getGroupedCategories() {
@@ -123,7 +121,7 @@ public class QuestionController {
                 .filter(control -> control.getCategoryGroup() != null)
                 .collect(Collectors.groupingBy(
                         SecurityControl::getCategoryGroup,
-                        TreeMap::new, // sorted by group name
+                        TreeMap::new,
                         Collectors.mapping(SecurityControl::getName, Collectors.toList())
                 ));
     }
@@ -179,8 +177,6 @@ public class QuestionController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
 
-        
-        
         Optional<User> userOptional = userRepository.findByUsername(username);
         if (userOptional.isEmpty()) {
             model.addAttribute("error", "User not found.");
@@ -196,7 +192,7 @@ public class QuestionController {
             return "result";
         }
 
-        List<Response> savedResponses = new ArrayList<>();
+        List<Response> responsesToSave = new ArrayList<>();
         int totalScore = 0;
         int totalQuestions = 0;
 
@@ -222,21 +218,18 @@ public class QuestionController {
                         response.setTimestamp(LocalDateTime.now());
                         response.setRole(selectedRole);
                         response.setCategory(selectedCategory);
-                        response.setSelectedAnswer(answer); // If used
-                        response.setCorrectAnswer(correctAnswer); // If used
+                        response.setSelectedAnswer(answer);
+                        response.setCorrectAnswer(correctAnswer);
 
-                        responseRepository.save(response);
-                        savedResponses.add(response);
+                        responsesToSave.add(response);
                     }
                 } catch (NumberFormatException ignored) {}
             }
         }
 
-        // Compute metrics
         double percentage = ((double) totalScore / totalQuestions) * 100.0;
         boolean passed = percentage >= 80.0;
 
-        // Store quiz result
         QuizResult result = new QuizResult();
         result.setUser(user);
         result.setTotalScore(totalScore);
@@ -246,13 +239,16 @@ public class QuestionController {
         result.setCompletedAt(LocalDateTime.now());
         result.setScorePercentage(percentage);
         result.setPassed(passed);
-        quizResultRepository.save(result);
+        quizResultRepository.saveAndFlush(result); // ensure ID is available
 
-        // Recommendations and training
+        for (Response response : responsesToSave) {
+            response.setQuizResult(result); // link each response to the result
+            responseRepository.save(response);
+        }
+
         String recommendation = scoringService.generateRecommendation(percentage);
         String trainingProgram = scoringService.suggestTrainingProgram(percentage);
 
-        // Set attributes for the result view
         model.addAttribute("username", username);
         model.addAttribute("role", selectedRole);
         model.addAttribute("category", selectedCategory);
@@ -261,8 +257,8 @@ public class QuestionController {
         model.addAttribute("passed", passed);
         model.addAttribute("recommendation", recommendation);
         model.addAttribute("trainingProgram", trainingProgram);
-        model.addAttribute("responses", savedResponses);
+        model.addAttribute("responses", responsesToSave);
 
-        return "result"; // Must match result.html
+        return "result";
     }
 }

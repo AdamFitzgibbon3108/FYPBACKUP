@@ -29,7 +29,7 @@ public class QuizResult {
     @Column(nullable = false)
     private LocalDateTime completedAt;
 
-    @Column(nullable = false)
+    @Column(nullable = true) // Marked optional in case old records had values
     private Double scorePercentage;
 
     @Column(nullable = false)
@@ -47,13 +47,8 @@ public class QuizResult {
         this.category = category;
         this.role = role;
         this.completedAt = LocalDateTime.now();
-        this.scorePercentage = calculatePercentage(totalScore, totalQuestions);
-        this.passed = this.scorePercentage >= 80;
-        this.recommendations = null; 
-    }
-
-    private double calculatePercentage(int score, int questions) {
-        return questions == 0 ? 0.0 : ((double) score / questions) * 100.0;
+        this.passed = totalScore >= 12;
+        this.recommendations = null;
     }
 
     // Getters and Setters
@@ -80,7 +75,6 @@ public class QuizResult {
 
     public void setTotalScore(int totalScore) {
         this.totalScore = totalScore;
-        updateScoreData();
     }
 
     public int getTotalQuestions() {
@@ -89,7 +83,6 @@ public class QuizResult {
 
     public void setTotalQuestions(int totalQuestions) {
         this.totalQuestions = totalQuestions;
-        updateScoreData();
     }
 
     public String getCategory() {
@@ -116,11 +109,11 @@ public class QuizResult {
         this.completedAt = completedAt;
     }
 
-    public double getScorePercentage() {
+    public Double getScorePercentage() {
         return scorePercentage;
     }
 
-    public void setScorePercentage(double scorePercentage) {
+    public void setScorePercentage(Double scorePercentage) {
         this.scorePercentage = scorePercentage;
     }
 
@@ -140,11 +133,6 @@ public class QuizResult {
         this.recommendations = recommendations;
     }
 
-    private void updateScoreData() {
-        this.scorePercentage = calculatePercentage(this.totalScore, this.totalQuestions);
-        this.passed = this.scorePercentage >= 80;
-    }
-
     @Override
     public String toString() {
         return "QuizResult{" +
@@ -152,7 +140,6 @@ public class QuizResult {
                 ", user=" + (user != null ? user.getUsername() : "null") +
                 ", totalScore=" + totalScore +
                 ", totalQuestions=" + totalQuestions +
-                ", scorePercentage=" + scorePercentage +
                 ", passed=" + passed +
                 ", category='" + category + '\'' +
                 ", role='" + role + '\'' +
@@ -161,5 +148,3 @@ public class QuizResult {
                 '}';
     }
 }
-
-
