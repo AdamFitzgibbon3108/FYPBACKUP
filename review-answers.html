@@ -97,10 +97,39 @@
             max-height: 60vh;
             overflow-y: auto;
         }
+
+        .message-box {
+            text-align: center;
+            padding: 40px 20px;
+            font-size: 1.1rem;
+            color: #f8fafc;
+            background-color: #334155;
+            border-radius: 10px;
+        }
+
+        .top-nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .top-nav a {
+            color: #3b82f6;
+            font-weight: bold;
+            text-decoration: none;
+            font-size: 1.1rem;
+        }
+
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
 <div class="card">
+    <div class="top-nav">
+        <a href="/user/quiz-history">⬅ Back to Quiz History</a>
+    </div>
+
     <h1>Review My Answers</h1>
 
     <div class="info-bar">
@@ -109,24 +138,29 @@
         <strong>Score:</strong> <span th:text="${score}">0</span>/15
     </div>
 
-    <div class="scrollable">
-        <div th:each="response, stat : ${responses}" class="question-block">
+    <!-- Conditional message if responses are empty -->
+    <div th:if="${#lists.isEmpty(responses)}" class="message-box">
+        <div th:if="${quizResult != null and quizResult.completedAt != null and quizResult.completedAt.isBefore(T(java.time.LocalDateTime).parse('2025-04-08T00:00:00'))}">
+            Answers for quizzes taken before April 8th, 2025 have been discontinued due to a platform update.
+        </div>
+        <div th:unless="${quizResult != null and quizResult.completedAt != null and quizResult.completedAt.isBefore(T(java.time.LocalDateTime).parse('2025-04-08T00:00:00'))}">
+            You haven't completed any answers for this quiz.
+        </div>
+    </div>
 
-            <!-- Question -->
+    <div class="scrollable" th:if="${!#lists.isEmpty(responses)}">
+        <div th:each="response, stat : ${responses}" class="question-block">
             <div class="question-text" th:text="${stat.index + 1} + '. ' + ${response.question.text}">Question text</div>
 
-            <!-- Your Answer (styled block) -->
             <div class="answer your-answer">
                 <span class="label">Your Answer:</span>
                 <span th:text="${response.selectedAnswer}">User Answer</span>
             </div>
 
-            <!-- Correct Answer (styled block) -->
             <div class="answer correct-answer">
                 <span class="label">Correct Answer:</span>
                 <span th:text="${response.correctAnswer}">Correct Answer</span>
             </div>
-
         </div>
     </div>
 
@@ -134,6 +168,4 @@
 </div>
 </body>
 </html>
-
-
 

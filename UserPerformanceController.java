@@ -65,5 +65,3 @@ public class UserPerformanceController {
         return "user-quiz-history";
     }
 }
-
-

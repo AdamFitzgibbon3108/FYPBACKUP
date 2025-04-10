@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class QuizResultServiceImpl implements QuizResultService {
@@ -22,10 +23,15 @@ public class QuizResultServiceImpl implements QuizResultService {
         return quizResultRepository.findByUserId(userId);
     }
 
-    // New method to save a result
     @Override
     public QuizResult saveResult(QuizResult quizResult) {
         return quizResultRepository.save(quizResult);
+    }
+
+    // New method to fetch a quiz result with its responses
+    @Override
+    public Optional<QuizResult> findByIdWithResponses(Long quizId) {
+        return quizResultRepository.findByIdWithResponses(quizId);
     }
 
     // Optional helper method for calculating rounded percentage

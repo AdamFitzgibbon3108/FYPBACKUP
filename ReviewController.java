@@ -71,6 +71,7 @@ public class ReviewController {
         model.addAttribute("category", latestResult.getCategory());
         model.addAttribute("role", latestResult.getRole());
         model.addAttribute("score", latestResult.getTotalScore());
+        model.addAttribute("quizResult", latestResult); // ✅ Needed for the cutoff message
 
         return "review-answers";
     }

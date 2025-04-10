@@ -2,6 +2,7 @@ package com.example.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "quiz_results")
@@ -11,6 +12,10 @@ public class QuizResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToMany(mappedBy = "quizResult", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Response> responses;
+
+    
     @ManyToOne(optional = false)
     private User user;
 
@@ -61,6 +66,16 @@ public class QuizResult {
         this.id = id;
     }
 
+    public List<Response> getResponses() {
+        return responses;
+    }
+
+    public void setResponses(List<Response> responses) {
+        this.responses = responses;
+    }
+
+    
+    
     public User getUser() {
         return user;
     }
@@ -128,6 +143,11 @@ public class QuizResult {
     public String getRecommendations() {
         return recommendations;
     }
+    
+    public Boolean getPassed() {
+        return passed;
+    }
+
 
     public void setRecommendations(String recommendations) {
         this.recommendations = recommendations;
