@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Comparator;
 import java.util.List;
@@ -35,7 +36,8 @@ public class ReviewController {
     }
 
     @GetMapping("/review")
-    public String showReviewPage(Model model) {
+    public String showReviewPage(Model model,
+                                 @RequestParam(name = "fromResult", required = false, defaultValue = "false") boolean fromResult) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
         System.out.println("DEBUG: Authenticated user -> " + username);
@@ -71,8 +73,10 @@ public class ReviewController {
         model.addAttribute("category", latestResult.getCategory());
         model.addAttribute("role", latestResult.getRole());
         model.addAttribute("score", latestResult.getTotalScore());
-        model.addAttribute("quizResult", latestResult); // ✅ Needed for the cutoff message
+        model.addAttribute("quizResult", latestResult);
+        model.addAttribute("fromResultPage", fromResult); //  Use this key to align with Thymeleaf template
 
         return "review-answers";
     }
 }
+

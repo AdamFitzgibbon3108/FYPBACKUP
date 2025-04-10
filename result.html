@@ -178,11 +178,12 @@
         <p><strong>Suggested Training:</strong> Cybersecurity Essentials Program</p>
     </div>
 
-    <div class="btn-container">
-        <a class="btn-custom" href="/dashboard">Back to Dashboard</a>
-        <a class="btn-custom" href="/user/performance">View Performance</a>
-        <a class="btn-custom" href="/result/review">Review My Answers</a>
-    </div>
+<div class="btn-container">
+    <a class="btn-custom" href="/dashboard">Back to Dashboard</a>
+    <a class="btn-custom" href="/user/performance">View Performance</a>
+    <a class="btn-custom" th:href="@{/result/review(fromResult=true)}">Review My Answers</a>
+</div>
+
 </div>
 </body>
 </html>

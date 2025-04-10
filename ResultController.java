@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +37,8 @@ public class ResultController {
     }
 
     @GetMapping
-    public String showResultPage(Model model) {
+    public String showResultPage(Model model,
+                                 @RequestParam(name = "fromReview", required = false, defaultValue = "false") boolean fromReview) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Long userId = userService.findByUsername(username).orElseThrow().getId();
@@ -73,9 +75,9 @@ public class ResultController {
             model.addAttribute("category", latestResult.getCategory());
             model.addAttribute("role", latestResult.getRole());
 
-            // Filter responses for this specific quiz result
+            // Filter responses for this specific quiz result (null-safe)
             List<Response> latestResponses = responses.stream()
-                    .filter(r -> r.getQuizResult().getId().equals(latestResult.getId()))
+                    .filter(r -> r.getQuizResult() != null && r.getQuizResult().getId().equals(latestResult.getId()))
                     .collect(Collectors.toList());
 
             List<Response> correctResponses = latestResponses.stream()
@@ -88,7 +90,6 @@ public class ResultController {
 
             model.addAttribute("correctResponses", correctResponses);
             model.addAttribute("incorrectResponses", incorrectResponses);
-
         } else {
             System.out.println("===== [DEBUG] No Quiz Result Found for user: " + username + " =====");
 
@@ -104,6 +105,7 @@ public class ResultController {
         }
 
         model.addAttribute("username", username);
+        model.addAttribute("fromReview", fromReview);
 
         return "result";
     }

@@ -74,25 +74,6 @@
             margin-right: 5px;
         }
 
-        .btn-custom {
-            background-color: #3b82f6;
-            color: #fff;
-            padding: 12px 26px;
-            border-radius: 10px;
-            font-weight: bold;
-            text-decoration: none;
-            display: block;
-            text-align: center;
-            margin: 30px auto 0;
-            width: fit-content;
-            transition: all 0.25s ease-in-out;
-        }
-
-        .btn-custom:hover {
-            background-color: #2563eb;
-            transform: scale(1.05);
-        }
-
         .scrollable {
             max-height: 60vh;
             overflow-y: auto;
@@ -127,7 +108,8 @@
 <body>
 <div class="card">
     <div class="top-nav">
-        <a href="/user/quiz-history">⬅ Back to Quiz History</a>
+        <a th:if="${fromResultPage}" href="/result">⬅ Back to Results</a>
+        <a th:unless="${fromResultPage}" href="/user/quiz-history">⬅ Back to Quiz History</a>
     </div>
 
     <h1>Review My Answers</h1>
@@ -163,8 +145,6 @@
             </div>
         </div>
     </div>
-
-    <a class="btn-custom" href="/dashboard">Back to Dashboard</a>
 </div>
 </body>
 </html>

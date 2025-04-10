@@ -5,9 +5,9 @@ import com.example.model.QuizResult;
 import com.example.model.Response;
 import com.example.model.User;
 import com.example.repository.QuestionRepository;
-import com.example.repository.UserRepository;
 import com.example.repository.QuizResultRepository;
 import com.example.repository.ResponseRepository;
+import com.example.repository.UserRepository;
 import dto.SubmittedAnswerDTO;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -50,6 +50,7 @@ public class ResponseService {
         quizResult.setTotalQuestions(totalQuestions);
         quizResult.setRecommendations(recommendation);
 
+        // Save early to assign ID for foreign key references in responses
         quizResult = quizResultRepository.saveAndFlush(quizResult);
 
         for (int i = 0; i < responses.size(); i++) {
@@ -63,12 +64,8 @@ public class ResponseService {
             log.debug("🔍 Q{}: {}", i + 1, question.getQuestionText());
             log.debug("   - Raw Selected: '{}'", dto.getSelectedAnswer());
             log.debug("   - Raw Correct : '{}'", dto.getCorrectAnswer());
-            log.debug("   - Raw equals? {}", dto.getSelectedAnswer().equals(dto.getCorrectAnswer()));
             log.debug("   - Normalized Selected: '{}'", normalizedSelected);
             log.debug("   - Normalized Correct : '{}'", normalizedCorrect);
-            log.debug("   - Normalized equalsIgnoreCase? {}", isCorrect);
-            log.debug("   - Selected bytes: {}", bytes(normalizedSelected));
-            log.debug("   - Correct  bytes: {}", bytes(normalizedCorrect));
             log.debug("   - Is Correct? {}", isCorrect);
 
             if (isCorrect) {
@@ -77,7 +74,7 @@ public class ResponseService {
 
             Response response = new Response();
             response.setUser(user);
-            response.setQuizResult(quizResult);
+            response.setQuizResult(quizResult); // Ensure relation is set
             response.setQuestion(question);
             response.setSelectedAnswer(normalizedSelected);
             response.setCorrectAnswer(normalizedCorrect);
@@ -94,7 +91,8 @@ public class ResponseService {
         quizResult.setPassed(totalScore >= 12);
         quizResultRepository.save(quizResult);
 
-        log.info("✅ Quiz saved for user '{}' | Category: '{}' | Score: {}/{}", user.getUsername(), category, totalScore, totalQuestions);
+        log.info("✅ Quiz saved for user '{}' | Category: '{}' | Score: {}/{}",
+                user.getUsername(), category, totalScore, totalQuestions);
 
         return quizResult;
     }
@@ -104,11 +102,11 @@ public class ResponseService {
         String normalized = Normalizer.normalize(input, Normalizer.Form.NFKC);
 
         normalized = normalized.replaceAll("&nbsp;", " ");
-        normalized = normalized.replace("\u00A0", " "); // non-breaking space
-        normalized = normalized.replaceAll("[\\p{C}]", ""); // invisible/control chars
-        normalized = normalized.replaceAll("\\p{Pd}", "-"); // dashes to hyphen
-        normalized = normalized.replaceAll("[\\u2018\\u2019\\u201A\\u201B]", "'"); // single quotes
-        normalized = normalized.replaceAll("[\\u201C\\u201D\\u201E\\u201F]", "\""); // double quotes
+        normalized = normalized.replace("\u00A0", " ");
+        normalized = normalized.replaceAll("[\\p{C}]", "");
+        normalized = normalized.replaceAll("\\p{Pd}", "-");
+        normalized = normalized.replaceAll("[\\u2018\\u2019\\u201A\\u201B]", "'");
+        normalized = normalized.replaceAll("[\\u201C\\u201D\\u201E\\u201F]", "\"");
 
         return normalized.trim().replaceAll("\\s+", " ");
     }
