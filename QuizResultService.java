@@ -9,7 +9,8 @@ public interface QuizResultService {
     List<QuizResult> findByUserId(Long userId);
     QuizResult saveResult(QuizResult quizResult);
     Optional<QuizResult> findByIdWithResponses(Long quizId);
-    
-    
+
+    // New method
+    Long countByRole(String role);
 }
 

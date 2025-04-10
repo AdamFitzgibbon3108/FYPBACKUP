@@ -28,8 +28,10 @@ public interface QuizResultRepository extends JpaRepository<QuizResult, Long> {
            "GROUP BY sc.categoryGroup")
     List<Object[]> getQuizCountByCategoryGroup(@Param("username") String username);
 
-    //  Fetch a quiz result with its associated responses
     @Query("SELECT q FROM QuizResult q LEFT JOIN FETCH q.responses WHERE q.id = :quizId")
     Optional<QuizResult> findByIdWithResponses(@Param("quizId") Long quizId);
-}
 
+    //  New: Count by role for chart updates
+    @Query("SELECT COUNT(q) FROM QuizResult q WHERE q.role = :role")
+    Long countByRole(@Param("role") String role);
+}
