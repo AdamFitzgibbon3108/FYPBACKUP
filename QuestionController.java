@@ -259,6 +259,6 @@ public class QuestionController {
         model.addAttribute("trainingProgram", trainingProgram);
         model.addAttribute("responses", responsesToSave);
 
-        return "result";
+        return "redirect:/result";
     }
 }
