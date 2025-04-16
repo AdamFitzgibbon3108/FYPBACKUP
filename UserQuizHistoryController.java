@@ -37,7 +37,7 @@ public class UserQuizHistoryController {
         return "user-quiz-history";
     }
 
-    // NEW: View detailed answers for a quiz
+    //  View detailed answers for a quiz
     @GetMapping("/user/quiz/{quizId}/answers")
     public String reviewQuizAnswers(@PathVariable Long quizId, Model model) {
         QuizResult quizResult = quizResultRepository.findByIdWithResponses(quizId).orElse(null);
