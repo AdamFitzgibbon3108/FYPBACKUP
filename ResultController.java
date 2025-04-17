@@ -7,6 +7,7 @@ import com.example.model.SecurityControl;
 import com.example.service.LearningResourceService;
 import com.example.service.QuizResultService;
 import com.example.service.ResponseService;
+import com.example.service.ScoringService;
 import com.example.service.SecurityControlService;
 import com.example.service.UserService;
 
@@ -33,27 +34,29 @@ public class ResultController {
     private final UserService userService;
     private final SecurityControlService securityControlService;
     private final LearningResourceService learningResourceService;
+    private final ScoringService scoringService; // ✅ Injected
 
     @Autowired
     public ResultController(ResponseService responseService,
                             QuizResultService quizResultService,
                             UserService userService,
                             SecurityControlService securityControlService,
-                            LearningResourceService learningResourceService) {
+                            LearningResourceService learningResourceService,
+                            ScoringService scoringService) {
         this.responseService = responseService;
         this.quizResultService = quizResultService;
         this.userService = userService;
         this.securityControlService = securityControlService;
         this.learningResourceService = learningResourceService;
+        this.scoringService = scoringService;
     }
 
     @GetMapping
     public String showResultPage(Model model,
                                  @RequestParam(name = "fromReview", required = false, defaultValue = "false") boolean fromReview) {
-    	System.out.println(">>>> [DEBUG] Entered /result controller method");
+        System.out.println(">>>> [DEBUG] Entered /result controller method");
 
-    	
-    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Long userId = userService.findByUsername(username).orElseThrow().getId();
 
@@ -67,8 +70,9 @@ public class ResultController {
         if (latestResult != null) {
             boolean passed = Boolean.TRUE.equals(latestResult.getPassed());
             String recommendations = latestResult.getRecommendations();
+
             if (recommendations == null || recommendations.trim().isEmpty()) {
-                recommendations = "No specific advice — please review general cybersecurity principles.";
+                recommendations = scoringService.getCategoryRecommendation(latestResult.getCategory()); // ✅ use category-specific recommendation
             }
 
             int total = latestResult.getTotalQuestions();
@@ -96,11 +100,7 @@ public class ResultController {
             System.out.println(">>> [TRACE] About to print all controls...");
             securityControlService.printAllControlNames();
 
-            
-            
-            
             Optional<SecurityControl> optionalControl = securityControlService.findByNameIgnoreCase(categoryName.trim());
-
 
             if (optionalControl.isPresent()) {
                 SecurityControl control = optionalControl.get();

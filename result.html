@@ -140,6 +140,15 @@
         .resource-list a:hover {
             color: #3b82f6;
         }
+
+        .highlight {
+            background-color: #1d4ed8;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: inline-block;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -163,19 +172,17 @@
 
     <div class="subtext mt-4">
         <p>
-            <strong>Recommendation:</strong>
+            <strong>Personalized Recommendation for this Category:</strong>
             <span th:if="${recommendations != null and !#strings.isEmpty(recommendations)}"
-                  th:text="${recommendations}">
-                General cybersecurity advice.
-            </span>
+                  th:text="${recommendations}">General cybersecurity advice.</span>
             <span th:unless="${recommendations != null and !#strings.isEmpty(recommendations)}">
                 No specific recommendation available — keep learning and practicing securely.
             </span>
         </p>
 
-        <!-- Show learning resources if available -->
+        <!-- Category-Specific Learning Resources -->
         <th:block th:if="${resources != null and !resources.isEmpty()}">
-            <p><strong>Suggested Training Links:</strong></p>
+            <p class="highlight">Recommended Resources for <span th:text="${category}">Category</span></p>
             <p><em>Total Resources Found: <span th:text="${#lists.size(resources)}">0</span></em></p>
             <ul class="resource-list">
                 <li th:each="res : ${resources}">
@@ -200,5 +207,3 @@
 </div>
 </body>
 </html>
-
-
