@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Threat Intelligence</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        h2 {
+            text-align: center;
+            margin-top: 20px;
+            color: #00e1ff;
+        }
+
+        .intro {
+            margin: 20px auto;
+            width: 90%;
+            font-size: 15px;
+            line-height: 1.6;
+            background-color: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid #00e1ff;
+        }
+
+        .intro strong {
+            color: #00e1ff;
+        }
+
+        .container {
+            margin: 0 auto;
+            width: 90%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background-color: #222;
+            color: #00e1ff;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            text-align: left;
+        }
+
+        tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        .na {
+            color: #ff5e5e;
+            font-style: italic;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            border-radius: 8px;
+            color: #e0e0e0;
+        }
+
+        .close {
+            color: #ff5e5e;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .legend-section p {
+            margin: 10px 0;
+        }
+
+        .legend-section h3 {
+            color: #00e1ff;
+        }
+
+        .legend-button {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background-color: #00e1ff;
+            color: black;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .legend-button:hover {
+            background-color: #00c2dd;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Recent CVE Threat Intelligence</h2>
+
+    <div class="intro">
+        <p>This page displays a live feed of recent <strong>Common Vulnerabilities and Exposures (CVEs)</strong> collected from the public API provided by <a href="https://cve.circl.lu" target="_blank" style="color: #00e1ff;">CIRCL CVE Search</a>.</p>
+        <p>These entries are sourced from the <strong>National Vulnerability Database (NVD)</strong> and trusted security reports, ensuring reliable and up-to-date information.</p>
+        <p>The CVEs listed include severity scores, vendor/product names, and technical classifications (CWE, CVSS).</p>
+    </div>
+
+    <div class="container">
+        <button class="legend-button" onclick="document.getElementById('legendModal').style.display='block'">View Legend</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Summary</th>
+                    <th>Published</th>
+                    <th>Modified</th>
+                    <th>CVSS</th>
+                    <th>CWE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="cve : ${cves}">
+                    <td th:title="'CVE ID: ' + cve.id">
+                        <span th:text="${cve.id}">ID</span>
+                    </td>
+                    <td th:title="'Description: ' + cve.summary">
+                        <span th:if="${#strings.isEmpty(cve.summary)}" class="na">n/a</span>
+                        <span th:unless="${#strings.isEmpty(cve.summary)}" th:text="${cve.summary}"></span>
+                    </td>
+                    <td th:title="'Published: ' + (cve.published ?: 'n/a')">
+                        <span th:if="${#strings.isEmpty(cve.published)}" class="na">n/a</span>
+                        <span th:unless="${#strings.isEmpty(cve.published)}" th:text="${cve.published}"></span>
+                    </td>
+                    <td th:title="'Modified: ' + (cve.modifiedDate ?: 'n/a')">
+                        <span th:if="${#strings.isEmpty(cve.modifiedDate)}" class="na">n/a</span>
+                        <span th:unless="${#strings.isEmpty(cve.modifiedDate)}" th:text="${cve.modifiedDate}"></span>
+                    </td>
+                    <td th:title="'Full CVSS: ' + (cve.cvss ?: 'n/a')">
+                        <span th:if="${#strings.isEmpty(cve.cvss)}" class="na">n/a</span>
+                        <span th:unless="${#strings.isEmpty(cve.cvss)}"
+                              th:text="${#strings.length(cve.cvss) &gt;= 8 ? #strings.substring(cve.cvss, 5, 8) : cve.cvss}"></span>
+                    </td>
+                    <td th:title="'CWE Info: ' + (cve.cwe ?: 'n/a')">
+                        <span th:if="${#strings.isEmpty(cve.cwe)}" class="na">n/a</span>
+                        <span th:unless="${#strings.isEmpty(cve.cwe)}" th:text="${cve.cwe}"></span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal -->
+    <div id="legendModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('legendModal').style.display='none'">&times;</span>
+            <div class="legend-section">
+                <h3>What This Page Shows</h3>
+                <p><strong>CVE ID</strong> – A unique ID for tracking known vulnerabilities.</p>
+                <p><strong>Summary</strong> – A short description of the issue, typically mentioning affected products or vendors.</p>
+                <p><strong>Published</strong> – The original date the vulnerability was announced.</p>
+                <p><strong>Modified</strong> – The most recent update to the vulnerability's info.</p>
+                <p><strong>CVSS</strong> – Security severity score version (e.g., 3.1).</p>
+                <p><strong>CWE</strong> – The technical category or type of flaw (e.g., buffer overflow, XSS).</p>
+                <p class="na"><strong>n/a</strong> – No information was found for that specific field.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.onclick = function(event) {
+            const modal = document.getElementById('legendModal');
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+

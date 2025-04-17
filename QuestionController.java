@@ -252,8 +252,7 @@ public class QuestionController {
         }
 
         String recommendation = recommendationService.getRandomRecommendation(selectedCategory);
-        System.out.println(">>> [DEBUG] Final Recommendation: " + recommendation);
-        System.out.flush(); // force it to print immediately
+      
         String trainingProgram = scoringService.suggestTrainingProgram(percentage);
 
         model.addAttribute("username", username);
