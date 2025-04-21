@@ -16,16 +16,18 @@ public class ThreatIntelController {
     public ThreatIntelController(ThreatIntelService threatIntelService) {
         this.threatIntelService = threatIntelService;
     }
+    
+    @GetMapping("/threat-alerts")
+    public String showThreatAlertsDashboard() {
+        return "threat-alerts"; // Make sure this exactly matches the filename
+    }
+
 
     @GetMapping("/threat-intel")
     public String showThreatIntel(Model model) {
-        List<CveItem> cveItems = threatIntelService.fetchRecentCves();
-        model.addAttribute("cves", cveItems);
+        List<CveItem> cves = threatIntelService.fetchLatestCves();
+        model.addAttribute("cves", cves);
         return "threat-intel";
     }
-
-    @GetMapping("/threat-alerts")
-    public String showThreatAlertsDashboard() {
-        return "threat-alerts";
-    }
 }
+

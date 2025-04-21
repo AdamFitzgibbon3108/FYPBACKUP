@@ -4,18 +4,18 @@ public class CveItem {
     private String id;
     private String summary;
     private String published;
-    private String modifiedDate;
+    private String modified;
     private String baseScore;
     private String cwe;
 
     public CveItem() {
     }
 
-    public CveItem(String id, String summary, String published, String modifiedDate, String baseScore, String cwe) {
+    public CveItem(String id, String summary, String published, String modified, String baseScore, String cwe) {
         this.id = id;
         this.summary = summary;
         this.published = published;
-        this.modifiedDate = modifiedDate;
+        this.modified = modified;
         this.baseScore = baseScore;
         this.cwe = cwe;
     }
@@ -44,12 +44,12 @@ public class CveItem {
         this.published = published;
     }
 
-    public String getModifiedDate() {
-        return modifiedDate;
+    public String getModified() {
+        return modified;
     }
 
-    public void setModifiedDate(String modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setModified(String modified) {
+        this.modified = modified;
     }
 
     public String getBaseScore() {
@@ -74,9 +74,10 @@ public class CveItem {
                 "id='" + id + '\'' +
                 ", summary='" + summary + '\'' +
                 ", published='" + published + '\'' +
-                ", modifiedDate='" + modifiedDate + '\'' +
+                ", modified='" + modified + '\'' +
                 ", baseScore='" + baseScore + '\'' +
                 ", cwe='" + cwe + '\'' +
                 '}';
     }
 }
+

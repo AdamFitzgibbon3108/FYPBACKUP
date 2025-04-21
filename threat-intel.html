@@ -173,9 +173,9 @@
                 <span th:if="${#strings.isEmpty(cve.published)}" class="na">n/a</span>
                 <span th:unless="${#strings.isEmpty(cve.published)}" th:text="${cve.published}"></span>
             </td>
-            <td th:title="'Modified: ' + cve.modifiedDate">
-                <span th:if="${#strings.isEmpty(cve.modifiedDate)}" class="na">n/a</span>
-                <span th:unless="${#strings.isEmpty(cve.modifiedDate)}" th:text="${cve.modifiedDate}"></span>
+            <td th:title="'Modified: ' + cve.modified">
+                <span th:if="${#strings.isEmpty(cve.modified)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.modified)}" th:text="${cve.modified}"></span>
             </td>
             <td th:title="'Base Score: ' + cve.baseScore">
                 <span th:if="${#strings.isEmpty(cve.baseScore)}" class="na">n/a</span>
@@ -256,6 +256,13 @@
 </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
