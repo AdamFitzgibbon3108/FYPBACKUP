@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>ThreatLens - Threat Alerts</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+    <style>
+        body {
+            background-color: #0e1117;
+            color: #e0e6f0;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px 20px;
+            background-color: #0b0f1a;
+            border-bottom: 1px solid #1f2a40;
+        }
+
+        .header h1 {
+            color: #4eaaff;
+            margin: 0;
+            font-size: 32px;
+        }
+
+        .subtext {
+            color: #9daecb;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 60px auto;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .action-button {
+            background-color: #4eaaff;
+            color: white;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 145, 255, 0.15);
+            transition: background-color 0.3s ease;
+        }
+
+        .action-button:hover {
+            background-color: #3498db;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .back-link a {
+            color: #4eaaff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>Threat Alerts Dashboard</h1>
+    <p class="subtext">Explore live threat data feeds powered by CIRCL CVE Search API</p>
+</div>
+
+<div class="button-container">
+    <a th:href="@{/threat-intel}" class="action-button"> View the Latest CVEs</a>
+    <!-- Future buttons -->
+    <!-- <a th:href="@{/search-vendor}" class="action-button"> Browse by Vendor/Product</a> -->
+    <!-- <a th:href="@{/recent-feeds}" class="action-button"> Recent Vulnerability Feeds</a> -->
+</div>
+
+<div class="back-link">
+    <a th:href="@{/dashboard}">← Back to Main Dashboard</a>
+</div>
+
+</body>
+</html>
+

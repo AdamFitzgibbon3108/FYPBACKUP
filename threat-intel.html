@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8">
     <title>Threat Intelligence</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
     <style>
@@ -44,12 +45,18 @@
         thead {
             background-color: #222;
             color: #00e1ff;
+            cursor: pointer;
         }
 
         th, td {
             padding: 10px;
             border-bottom: 1px solid #333;
             text-align: left;
+        }
+
+        th.sorted {
+            background-color: #333;
+            color: #ffffff;
         }
 
         tr:nth-child(even) {
@@ -65,10 +72,12 @@
             display: none;
             position: fixed;
             z-index: 1;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.7);
+            background-color: rgba(0, 0, 0, 0.7);
         }
 
         .modal-content {
@@ -98,9 +107,8 @@
         }
 
         .legend-button {
-            position: absolute;
-            top: 20px;
-            right: 30px;
+            float: right;
+            margin: 10px 0;
             background-color: #00e1ff;
             color: black;
             padding: 8px 15px;
@@ -112,90 +120,145 @@
         .legend-button:hover {
             background-color: #00c2dd;
         }
+
+        #sortToast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #00e1ff;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: none;
+            z-index: 10;
+        }
     </style>
 </head>
 
 <body>
-    <h2>Recent CVE Threat Intelligence</h2>
+<h2>Recent CVE Threat Intelligence</h2>
 
-    <div class="intro">
-        <p>This page displays a live feed of recent <strong>Common Vulnerabilities and Exposures (CVEs)</strong> collected from the public API provided by <a href="https://cve.circl.lu" target="_blank" style="color: #00e1ff;">CIRCL CVE Search</a>.</p>
-        <p>These entries are sourced from the <strong>National Vulnerability Database (NVD)</strong> and trusted security reports, ensuring reliable and up-to-date information.</p>
-        <p>The CVEs listed include severity scores, vendor/product names, and technical classifications (CWE, CVSS).</p>
-    </div>
+<div class="intro">
+    <p>This page displays a live feed of recent <strong>Common Vulnerabilities and Exposures (CVEs)</strong> collected from the public API provided by <a href="https://cve.circl.lu" target="_blank" style="color: #00e1ff;">CIRCL CVE Search</a>.</p>
+    <p>These entries are sourced from the <strong>National Vulnerability Database (NVD)</strong> and trusted security reports, ensuring reliable and up-to-date information.</p>
+    <p>The CVEs listed include severity scores, vendor/product names, and technical classifications (CWE, CVSS).</p>
+</div>
 
-    <div class="container">
-        <button class="legend-button" onclick="document.getElementById('legendModal').style.display='block'">View Legend</button>
+<div class="container">
+    <button class="legend-button" onclick="document.getElementById('legendModal').style.display='block'" aria-label="View legend explaining table columns">View Legend</button>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Summary</th>
-                    <th>Published</th>
-                    <th>Modified</th>
-                    <th>CVSS</th>
-                    <th>CWE</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="cve : ${cves}">
-                    <td th:title="'CVE ID: ' + cve.id">
-                        <span th:text="${cve.id}">ID</span>
-                    </td>
-                    <td th:title="'Description: ' + cve.summary">
-                        <span th:if="${#strings.isEmpty(cve.summary)}" class="na">n/a</span>
-                        <span th:unless="${#strings.isEmpty(cve.summary)}" th:text="${cve.summary}"></span>
-                    </td>
-                    <td th:title="'Published: ' + (cve.published ?: 'n/a')">
-                        <span th:if="${#strings.isEmpty(cve.published)}" class="na">n/a</span>
-                        <span th:unless="${#strings.isEmpty(cve.published)}" th:text="${cve.published}"></span>
-                    </td>
-                    <td th:title="'Modified: ' + (cve.modifiedDate ?: 'n/a')">
-                        <span th:if="${#strings.isEmpty(cve.modifiedDate)}" class="na">n/a</span>
-                        <span th:unless="${#strings.isEmpty(cve.modifiedDate)}" th:text="${cve.modifiedDate}"></span>
-                    </td>
-                    <td th:title="'Full CVSS: ' + (cve.cvss ?: 'n/a')">
-                        <span th:if="${#strings.isEmpty(cve.cvss)}" class="na">n/a</span>
-                        <span th:unless="${#strings.isEmpty(cve.cvss)}"
-                              th:text="${#strings.length(cve.cvss) &gt;= 8 ? #strings.substring(cve.cvss, 5, 8) : cve.cvss}"></span>
-                    </td>
-                    <td th:title="'CWE Info: ' + (cve.cwe ?: 'n/a')">
-                        <span th:if="${#strings.isEmpty(cve.cwe)}" class="na">n/a</span>
-                        <span th:unless="${#strings.isEmpty(cve.cwe)}" th:text="${cve.cwe}"></span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <table id="cveTable" data-sort-dir="asc">
+        <thead>
+        <tr>
+            <th onclick="sortTable(0, 'ID')">ID <span id="icon-0"></span></th>
+            <th onclick="sortTable(1, 'Summary')">Summary <span id="icon-1"></span></th>
+            <th onclick="sortTable(2, 'Published')">Published <span id="icon-2"></span></th>
+            <th onclick="sortTable(3, 'Modified')">Modified <span id="icon-3"></span></th>
+            <th onclick="sortTable(4, 'Base Score')">Base Score <span id="icon-4"></span></th>
+            <th onclick="sortTable(5, 'CWE')">CWE <span id="icon-5"></span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="cve : ${cves}">
+            <td th:title="'CVE ID: ' + cve.id">
+                <span th:text="${cve.id}">CVE-ID</span>
+            </td>
+            <td th:title="'Description: ' + cve.summary">
+                <span th:if="${#strings.isEmpty(cve.summary)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.summary)}" th:text="${cve.summary}"></span>
+            </td>
+            <td th:title="'Published: ' + cve.published">
+                <span th:if="${#strings.isEmpty(cve.published)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.published)}" th:text="${cve.published}"></span>
+            </td>
+            <td th:title="'Modified: ' + cve.modifiedDate">
+                <span th:if="${#strings.isEmpty(cve.modifiedDate)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.modifiedDate)}" th:text="${cve.modifiedDate}"></span>
+            </td>
+            <td th:title="'Base Score: ' + cve.baseScore">
+                <span th:if="${#strings.isEmpty(cve.baseScore)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.baseScore)}" th:text="${cve.baseScore}"></span>
+            </td>
+            <td th:title="'CWE Info: ' + cve.cwe">
+                <span th:if="${#strings.isEmpty(cve.cwe)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.cwe)}" th:text="${cve.cwe}"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 
-    <!-- Modal -->
-    <div id="legendModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="document.getElementById('legendModal').style.display='none'">&times;</span>
-            <div class="legend-section">
-                <h3>What This Page Shows</h3>
-                <p><strong>CVE ID</strong> – A unique ID for tracking known vulnerabilities.</p>
-                <p><strong>Summary</strong> – A short description of the issue, typically mentioning affected products or vendors.</p>
-                <p><strong>Published</strong> – The original date the vulnerability was announced.</p>
-                <p><strong>Modified</strong> – The most recent update to the vulnerability's info.</p>
-                <p><strong>CVSS</strong> – Security severity score version (e.g., 3.1).</p>
-                <p><strong>CWE</strong> – The technical category or type of flaw (e.g., buffer overflow, XSS).</p>
-                <p class="na"><strong>n/a</strong> – No information was found for that specific field.</p>
-            </div>
+<!-- Toast -->
+<div id="sortToast"></div>
+
+<!-- Modal -->
+<div id="legendModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('legendModal').style.display='none'" aria-label="Close legend">&times;</span>
+        <div class="legend-section">
+            <h3>What This Page Shows</h3>
+            <p><strong>CVE ID</strong> – A unique ID for tracking known vulnerabilities.</p>
+            <p><strong>Summary</strong> – A short description of the issue, typically mentioning affected products or vendors.</p>
+            <p><strong>Published</strong> – The original date the vulnerability was announced.</p>
+            <p><strong>Modified</strong> – The most recent update to the vulnerability’s info.</p>
+            <p><strong>Base Score</strong> – Severity score from 0.0 (low) to 10.0 (critical), based on CVSS.</p>
+            <p><strong>CWE</strong> – The technical category or type of flaw (e.g., buffer overflow, XSS).</p>
+            <p class="na"><strong>n/a</strong> – No information was found for that specific field.</p>
         </div>
     </div>
+</div>
 
-    <script>
-        window.onclick = function(event) {
-            const modal = document.getElementById('legendModal');
-            if (event.target === modal) {
-                modal.style.display = "none";
+<script>
+    function sortTable(colIndex, label) {
+        const table = document.getElementById("cveTable");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+        const isNumeric = colIndex === 4;
+        const direction = table.getAttribute("data-sort-dir") === "asc" ? "desc" : "asc";
+        table.setAttribute("data-sort-dir", direction);
+
+        rows.sort((a, b) => {
+            let valA = a.cells[colIndex].innerText.trim().toLowerCase();
+            let valB = b.cells[colIndex].innerText.trim().toLowerCase();
+            if (isNumeric) {
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
             }
+            return direction === "asc" ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+
+        document.querySelectorAll("th").forEach((th, i) => {
+            th.classList.remove("sorted");
+            const icon = document.getElementById("icon-" + i);
+            if (icon) icon.textContent = "";
+        });
+
+        const icon = document.getElementById("icon-" + colIndex);
+        icon.textContent = direction === "asc" ? " 🔼" : " 🔽";
+        document.querySelectorAll("th")[colIndex].classList.add("sorted");
+
+        const toast = document.getElementById("sortToast");
+        toast.textContent = `Sorted by ${label} (${direction})`;
+        toast.style.display = "block";
+        setTimeout(() => { toast.style.display = "none"; }, 2500);
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('legendModal');
+        if (event.target === modal) {
+            modal.style.display = "none";
         }
-    </script>
+    }
+</script>
 </body>
 </html>
+
+
+
 
 
 

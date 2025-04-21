@@ -5,18 +5,18 @@ public class CveItem {
     private String summary;
     private String published;
     private String modifiedDate;
-    private String cvss;  // Match Thymeleaf
+    private String baseScore;
     private String cwe;
 
     public CveItem() {
     }
 
-    public CveItem(String id, String summary, String published, String modifiedDate, String cvss, String cwe) {
+    public CveItem(String id, String summary, String published, String modifiedDate, String baseScore, String cwe) {
         this.id = id;
         this.summary = summary;
         this.published = published;
         this.modifiedDate = modifiedDate;
-        this.cvss = cvss;
+        this.baseScore = baseScore;
         this.cwe = cwe;
     }
 
@@ -52,12 +52,12 @@ public class CveItem {
         this.modifiedDate = modifiedDate;
     }
 
-    public String getCvss() {
-        return cvss;
+    public String getBaseScore() {
+        return baseScore;
     }
 
-    public void setCvss(String cvss) {
-        this.cvss = cvss;
+    public void setBaseScore(String baseScore) {
+        this.baseScore = baseScore;
     }
 
     public String getCwe() {
@@ -75,9 +75,8 @@ public class CveItem {
                 ", summary='" + summary + '\'' +
                 ", published='" + published + '\'' +
                 ", modifiedDate='" + modifiedDate + '\'' +
-                ", cvss='" + cvss + '\'' +
+                ", baseScore='" + baseScore + '\'' +
                 ", cwe='" + cwe + '\'' +
                 '}';
     }
 }
-
