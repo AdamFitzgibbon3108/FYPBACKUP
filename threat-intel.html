@@ -37,6 +37,20 @@
             width: 90%;
         }
 
+        .search-box {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+
+        .search-box input {
+            padding: 8px;
+            width: 250px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #1e1e1e;
+            color: #e0e0e0;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -136,7 +150,6 @@
         }
     </style>
 </head>
-
 <body>
 <h2>Recent CVE Threat Intelligence</h2>
 
@@ -147,6 +160,10 @@
 </div>
 
 <div class="container">
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search for keywords..." onkeyup="filterTable()">
+    </div>
+
     <button class="legend-button" onclick="document.getElementById('legendModal').style.display='block'" aria-label="View legend explaining table columns">View Legend</button>
 
     <table id="cveTable" data-sort-dir="asc">
@@ -163,7 +180,8 @@
         <tbody>
         <tr th:each="cve : ${cves}">
             <td th:title="'CVE ID: ' + cve.id">
-                <span th:text="${cve.id}">CVE-ID</span>
+               <a th:href="'https://nvd.nist.gov/vuln/detail/' + ${cve.id}" th:text="${cve.id}" target="_blank"></a>
+
             </td>
             <td th:title="'Description: ' + cve.summary">
                 <span th:if="${#strings.isEmpty(cve.summary)}" class="na">n/a</span>
@@ -173,9 +191,9 @@
                 <span th:if="${#strings.isEmpty(cve.published)}" class="na">n/a</span>
                 <span th:unless="${#strings.isEmpty(cve.published)}" th:text="${cve.published}"></span>
             </td>
-            <td th:title="'Modified: ' + cve.modified">
-                <span th:if="${#strings.isEmpty(cve.modified)}" class="na">n/a</span>
-                <span th:unless="${#strings.isEmpty(cve.modified)}" th:text="${cve.modified}"></span>
+            <td th:title="'Modified: ' + cve.modifiedDate">
+                <span th:if="${#strings.isEmpty(cve.modifiedDate)}" class="na">n/a</span>
+                <span th:unless="${#strings.isEmpty(cve.modifiedDate)}" th:text="${cve.modifiedDate}"></span>
             </td>
             <td th:title="'Base Score: ' + cve.baseScore">
                 <span th:if="${#strings.isEmpty(cve.baseScore)}" class="na">n/a</span>
@@ -247,6 +265,14 @@
         setTimeout(() => { toast.style.display = "none"; }, 2500);
     }
 
+    function filterTable() {
+        const input = document.getElementById("searchInput").value.toLowerCase();
+        const rows = document.querySelectorAll("#cveTable tbody tr");
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+        });
+    }
+
     window.onclick = function(event) {
         const modal = document.getElementById('legendModal');
         if (event.target === modal) {
@@ -256,19 +282,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
