@@ -72,24 +72,68 @@
             color: #ffffff;
         }
 
+        .section-heading {
+            text-align: center;
+            color: #f1f5f9;
+            font-size: 1.6rem;
+            margin-top: 60px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+            width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         .chart-wrapper {
-            width: 95%;
-            margin: 28px auto;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .chart-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
         }
 
         .chart-section {
             background: #1e293b;
             border-radius: 14px;
-            padding: 24px;
+            padding: 30px 20px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            margin-bottom: 32px;
+            flex: 1 1 620px;
+            max-width: 680px;
+        }
+
+        .chart-section h2 {
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+        }
+
+        .chart-section p {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-top: 0;
+            margin-bottom: 12px;
+        }
+
+        #overallScoreChart {
+            height: 300px !important;
+        }
+
+        #categoryAvgChart {
+            height: 500px !important;
         }
 
         canvas {
             background-color: transparent;
             border-radius: 12px;
             padding: 10px;
-            height: 280px !important;
         }
 
         .links {
@@ -166,18 +210,20 @@
         Great work! Keep going to improve your skills even more!
     </div>
 
-    <div class="chart-wrapper fade-in">
-        <div class="chart-section">
-            <h2 style="text-align:center; color:#cbd5e1;">Your Average Quiz Score</h2>
-            <canvas id="overallScoreChart"></canvas>
-        </div>
+    <div class="section-heading">📊 Visual Insights</div>
 
-        <div class="chart-section">
-            <h2 style="text-align:center; color:#cbd5e1;">Top 10 Categories by Average Score</h2>
-            <p style="text-align:center; color:#94a3b8; margin-top: -10px; font-size: 0.95rem;">
-                Your best and worst areas are highlighted.
-            </p>
-            <canvas id="categoryAvgChart"></canvas>
+    <div class="chart-wrapper fade-in">
+        <div class="chart-grid">
+            <div class="chart-section">
+                <h2>Your Average Quiz Score</h2>
+                <canvas id="overallScoreChart"></canvas>
+            </div>
+
+            <div class="chart-section">
+                <h2>Top 10 Categories by Average Score</h2>
+                <p>Your best and worst areas are highlighted.</p>
+                <canvas id="categoryAvgChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -213,12 +259,11 @@ const maxIndex = topScores.indexOf(Math.max(...topScores));
 const minIndex = topScores.indexOf(Math.min(...topScores));
 
 const barColors = topScores.map((_, i) => {
-    if (i === maxIndex) return 'rgba(34,197,94,0.85)';  // green for best
-    if (i === minIndex) return 'rgba(239,68,68,0.85)';  // red for worst
-    return 'rgba(251,191,36,0.85)';  // yellow for others
+    if (i === maxIndex) return 'rgba(34,197,94,0.85)';  // green
+    if (i === minIndex) return 'rgba(239,68,68,0.85)';  // red
+    return 'rgba(251,191,36,0.85)';                     // yellow
 });
 
-// Chart 1: Overall Average Score
 new Chart(document.getElementById('overallScoreChart'), {
     type: 'bar',
     data: {
@@ -239,14 +284,11 @@ new Chart(document.getElementById('overallScoreChart'), {
                 title: { display: true, text: 'Score', color: '#f8fafc' },
                 ticks: { color: '#f8fafc' }
             },
-            x: {
-                ticks: { color: '#f8fafc' }
-            }
+            x: { ticks: { color: '#f8fafc' } }
         }
     }
 });
 
-// Chart 2: Horizontal Bar - Top Categories
 new Chart(document.getElementById('categoryAvgChart'), {
     type: 'bar',
     data: {
@@ -261,6 +303,7 @@ new Chart(document.getElementById('categoryAvgChart'), {
     options: {
         indexAxis: 'y',
         responsive: true,
+        maintainAspectRatio: false,
         scales: {
             x: {
                 beginAtZero: true,
@@ -291,4 +334,3 @@ new Chart(document.getElementById('categoryAvgChart'), {
 
 </body>
 </html>
-
