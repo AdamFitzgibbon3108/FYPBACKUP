@@ -27,66 +27,199 @@ public class ThreatIntelService {
         try {
             logger.info("Sending GET request to {}", url);
             String response = restTemplate.getForObject(url, String.class);
-            logger.debug("Received raw API response:\n{}", response.substring(0, Math.min(response.length(), 1000)));
-
             JsonNode root = objectMapper.readTree(response);
 
             if (root.isArray()) {
-                logger.info("API response is an array. Parsing...");
                 for (JsonNode node : root) {
-                    String id = node.path("id").asText("n/a");
+                    boolean parsed = false;
 
-                    // Extract summary
+                    String id = "n/a";
                     String summary = "n/a";
-                    JsonNode descriptions = node.path("descriptions");
-                    if (descriptions.isArray() && descriptions.size() > 0) {
-                        for (JsonNode desc : descriptions) {
-                            if ("en".equals(desc.path("lang").asText())) {
-                                summary = desc.path("value").asText("n/a");
+                    String published = "n/a";
+                    String modifiedDate = "n/a";
+                    String baseScore = "n/a";
+                    String cwe = "n/a";
+                    String advisoryUrl = "n/a";
+                    String displayId = "n/a";
+                    String sourceLink = "n/a";
+
+                    // Format 1: Red Hat CSAF
+                    if (node.has("document")) {
+                        parsed = true;
+                        JsonNode doc = node.path("document");
+                        String rhsaId = doc.path("tracking").path("id").asText("n/a");
+                        String extractedCve = extractCveFromText(doc.path("notes"));
+                        summary = extractNoteValue(doc.path("notes"), "summary");
+
+                        published = doc.path("tracking").path("initial_release_date").asText("n/a");
+                        modifiedDate = doc.path("tracking").path("current_release_date").asText("n/a");
+                        cwe = "Red Hat Advisory";
+
+                        JsonNode references = doc.path("references");
+                        for (JsonNode ref : references) {
+                            if ("self".equals(ref.path("category").asText()) && ref.has("url")) {
+                                advisoryUrl = ref.path("url").asText("n/a");
                                 break;
                             }
                         }
+
+                        id = extractedCve.equals("n/a") ? rhsaId : extractedCve;
+                        displayId = rhsaId;
+                        sourceLink = advisoryUrl;
+
+                        if (!"n/a".equals(rhsaId) && !"n/a".equals(summary)) {
+                            cveItems.add(new CveItem(id, summary, published, modifiedDate, baseScore, cwe, advisoryUrl, displayId, sourceLink));
+                        }
                     }
 
-                    // Extract published and modified
-                    String published = node.path("published").asText("n/a");
-                    String modified = node.path("lastModified").asText("n/a");
+                    // Format 2: Legacy CVE (must not be GHSA)
+                    else if (node.has("id")) {
+                        id = node.path("id").asText("n/a");
 
-                    // Extract CVSS score
-                    String baseScore = "n/a";
-                    JsonNode metrics = node.path("metrics").path("cvssMetricV31");
-                    if (metrics.isArray() && metrics.size() > 0) {
-                        JsonNode cvssData = metrics.get(0).path("cvssData");
-                        if (!cvssData.isMissingNode()) {
+                        if (id.startsWith("GHSA-")) {
+                            logger.info("⛔ Skipping GHSA entry: {}", id);
+                            continue;
+                        }
+
+                        parsed = true;
+                        displayId = id;
+                        published = node.path("published").asText("n/a");
+                        modifiedDate = node.path("lastModified").asText("n/a");
+                        sourceLink = "https://nvd.nist.gov/vuln/detail/" + id;
+                        advisoryUrl = sourceLink;
+
+                        JsonNode descriptions = node.path("descriptions");
+                        if (descriptions.isArray()) {
+                            for (JsonNode desc : descriptions) {
+                                if ("en".equals(desc.path("lang").asText())) {
+                                    summary = desc.path("value").asText("n/a");
+                                    break;
+                                }
+                            }
+                        }
+
+                        JsonNode metrics = node.path("metrics").path("cvssMetricV31");
+                        if (metrics.isArray() && metrics.size() > 0) {
+                            JsonNode cvssData = metrics.get(0).path("cvssData");
                             baseScore = cvssData.path("baseScore").asText("n/a");
                         }
-                    }
 
-                    // Extract CWE
-                    String cwe = "n/a";
-                    JsonNode weaknesses = node.path("weaknesses");
-                    if (weaknesses.isArray() && weaknesses.size() > 0) {
-                        JsonNode descriptionsNode = weaknesses.get(0).path("description");
-                        if (descriptionsNode.isArray() && descriptionsNode.size() > 0) {
-                            cwe = descriptionsNode.get(0).path("value").asText("n/a");
+                        JsonNode weaknesses = node.path("weaknesses");
+                        if (weaknesses.isArray() && weaknesses.size() > 0) {
+                            JsonNode descNode = weaknesses.get(0).path("description");
+                            if (descNode.isArray() && descNode.size() > 0) {
+                                cwe = descNode.get(0).path("value").asText("n/a");
+                            }
+                        }
+
+                        if (!"n/a".equals(id)) {
+                            cveItems.add(new CveItem(id, summary, published, modifiedDate, baseScore, cwe, advisoryUrl, displayId, sourceLink));
                         }
                     }
 
-                    logger.debug("→ CVE parsed | ID={} | CVSS={} | CWE={} | Published={} | Summary={}",
-                            id, baseScore, cwe, published, summary.substring(0, Math.min(summary.length(), 60)));
+                    // Format 3: CVE 5.1 Modern Format
+                    else if (node.has("cveMetadata") && node.has("containers")) {
+                        parsed = true;
+                        JsonNode metadata = node.path("cveMetadata");
+                        JsonNode cna = node.path("containers").path("cna");
 
-                    cveItems.add(new CveItem(id, summary, published, modified, baseScore, cwe));
+                        id = metadata.path("cveId").asText("n/a");
+                        displayId = id;
+                        published = metadata.path("datePublished").asText("n/a");
+                        modifiedDate = metadata.path("dateUpdated").asText("n/a");
+
+                        JsonNode descriptions = cna.path("descriptions");
+                        if (descriptions.isArray()) {
+                            for (JsonNode desc : descriptions) {
+                                if ("en".equals(desc.path("lang").asText())) {
+                                    summary = desc.path("value").asText("n/a");
+                                    break;
+                                }
+                            }
+                        }
+
+                        JsonNode refs = cna.path("references");
+                        if (refs.isArray() && refs.size() > 0) {
+                            advisoryUrl = refs.get(0).path("url").asText("n/a");
+                        }
+
+                        sourceLink = advisoryUrl;
+
+                        // CNA CVSS
+                        JsonNode metrics = cna.path("metrics");
+                        if (metrics.isArray()) {
+                            for (JsonNode metric : metrics) {
+                                JsonNode cvss = metric.path("cvssV3_1");
+                                if (!cvss.isMissingNode()) {
+                                    baseScore = cvss.path("baseScore").asText("n/a");
+                                    break;
+                                }
+                            }
+                        }
+
+                        // ADP fallback CVSS
+                        if ("n/a".equals(baseScore)) {
+                            JsonNode adp = node.path("containers").path("adp");
+                            if (adp.isArray()) {
+                                for (JsonNode adpEntry : adp) {
+                                    JsonNode adpMetrics = adpEntry.path("metrics");
+                                    if (adpMetrics.isArray()) {
+                                        for (JsonNode metric : adpMetrics) {
+                                            JsonNode cvss = metric.path("cvssV3_1");
+                                            if (!cvss.isMissingNode()) {
+                                                baseScore = cvss.path("baseScore").asText("n/a");
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (!"n/a".equals(id)) {
+                            cveItems.add(new CveItem(id, summary, published, modifiedDate, baseScore, cwe, advisoryUrl, displayId, sourceLink));
+                        }
+                    }
+
+                    if (!parsed) {
+                        logger.warn("⚠️ Unsupported CVE entry skipped: {}", node.toPrettyString().substring(0, Math.min(node.toPrettyString().length(), 300)));
+                    }
                 }
-                logger.info("✅ Parsed {} CVEs successfully", cveItems.size());
             } else {
-                logger.warn("❌ API returned a non-array root JSON structure.");
+                logger.warn("❌ Unexpected JSON root structure");
             }
 
         } catch (Exception e) {
             logger.error("❌ Exception during CVE fetch: {}", e.getMessage(), e);
         }
 
-        logger.info("<== Exiting fetchLatestCves()");
+        logger.info("<== Exiting fetchLatestCves() with {} entries", cveItems.size());
         return cveItems;
     }
+
+    private String extractNoteValue(JsonNode notes, String category) {
+        if (notes != null && notes.isArray()) {
+            for (JsonNode note : notes) {
+                if (category.equalsIgnoreCase(note.path("category").asText())) {
+                    return note.path("text").asText("n/a");
+                }
+            }
+        }
+        return "n/a";
+    }
+
+    private String extractCveFromText(JsonNode notes) {
+        if (notes != null && notes.isArray()) {
+            for (JsonNode note : notes) {
+                String text = note.path("text").asText();
+                if (text.contains("CVE-")) {
+                    int start = text.indexOf("CVE-");
+                    int end = text.indexOf(" ", start);
+                    return text.substring(start, end > start ? end : text.length()).trim();
+                }
+            }
+        }
+        return "n/a";
+    }
 }
+

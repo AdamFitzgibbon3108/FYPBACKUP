@@ -4,20 +4,29 @@ public class CveItem {
     private String id;
     private String summary;
     private String published;
-    private String modified;
+    private String modifiedDate;
     private String baseScore;
     private String cwe;
+
+    private String advisoryUrl; // optional Red Hat advisory link
+    private String displayId;   // CVE ID or RHSA ID (used in table)
+    private String sourceLink;  // URL to link to (NVD or Red Hat)
 
     public CveItem() {
     }
 
-    public CveItem(String id, String summary, String published, String modified, String baseScore, String cwe) {
+    public CveItem(String id, String summary, String published, String modifiedDate,
+                   String baseScore, String cwe, String advisoryUrl,
+                   String displayId, String sourceLink) {
         this.id = id;
         this.summary = summary;
         this.published = published;
-        this.modified = modified;
+        this.modifiedDate = modifiedDate;
         this.baseScore = baseScore;
         this.cwe = cwe;
+        this.advisoryUrl = advisoryUrl;
+        this.displayId = displayId;
+        this.sourceLink = sourceLink;
     }
 
     public String getId() {
@@ -44,12 +53,12 @@ public class CveItem {
         this.published = published;
     }
 
-    public String getModified() {
-        return modified;
+    public String getModifiedDate() {
+        return modifiedDate;
     }
 
-    public void setModified(String modified) {
-        this.modified = modified;
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 
     public String getBaseScore() {
@@ -68,16 +77,42 @@ public class CveItem {
         this.cwe = cwe;
     }
 
+    public String getAdvisoryUrl() {
+        return advisoryUrl;
+    }
+
+    public void setAdvisoryUrl(String advisoryUrl) {
+        this.advisoryUrl = advisoryUrl;
+    }
+
+    public String getDisplayId() {
+        return displayId;
+    }
+
+    public void setDisplayId(String displayId) {
+        this.displayId = displayId;
+    }
+
+    public String getSourceLink() {
+        return sourceLink;
+    }
+
+    public void setSourceLink(String sourceLink) {
+        this.sourceLink = sourceLink;
+    }
+
     @Override
     public String toString() {
         return "CveItem{" +
                 "id='" + id + '\'' +
                 ", summary='" + summary + '\'' +
                 ", published='" + published + '\'' +
-                ", modified='" + modified + '\'' +
+                ", modifiedDate='" + modifiedDate + '\'' +
                 ", baseScore='" + baseScore + '\'' +
                 ", cwe='" + cwe + '\'' +
+                ", advisoryUrl='" + advisoryUrl + '\'' +
+                ", displayId='" + displayId + '\'' +
+                ", sourceLink='" + sourceLink + '\'' +
                 '}';
     }
 }
-

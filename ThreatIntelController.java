@@ -21,6 +21,8 @@ public class ThreatIntelController {
     public String showThreatAlertsDashboard() {
         return "threat-alerts"; // Make sure this exactly matches the filename
     }
+    
+    
 
 
     @GetMapping("/threat-intel")
@@ -30,4 +32,3 @@ public class ThreatIntelController {
         return "threat-intel";
     }
 }
-
