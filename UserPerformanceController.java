@@ -39,23 +39,28 @@ public class UserPerformanceController {
         Map<String, Long> scoreBuckets = userPerformanceService.getScoreBucketDistribution(username);
         Map<String, Long> passFail = userPerformanceService.getPassFailDistribution(username);
         Map<String, Long> categoryGroups = userPerformanceService.getCategoryGroupDistribution(username);
+        Map<String, Double> avgCategoryScores = userPerformanceService.getAverageScorePerCategory(username);
 
         try {
             String scoreBucketsJson = objectMapper.writeValueAsString(scoreBuckets);
             String passFailJson = objectMapper.writeValueAsString(passFail);
             String categoryGroupJson = objectMapper.writeValueAsString(categoryGroups);
+            String avgCategoryScoresJson = objectMapper.writeValueAsString(avgCategoryScores);
 
-            logger.info("[{}] - Prepared chart data: scoreBuckets={}, passFail={}, categoryGroups={}", username, scoreBucketsJson, passFailJson, categoryGroupJson);
+            logger.info("[{}] - Prepared chart data: scoreBuckets={}, passFail={}, categoryGroups={}, avgScores={}",
+                    username, scoreBucketsJson, passFailJson, categoryGroupJson, avgCategoryScoresJson);
 
             model.addAttribute("performance", performance);
             model.addAttribute("scoreBucketsJson", scoreBucketsJson);
             model.addAttribute("passFailJson", passFailJson);
             model.addAttribute("categoryGroupJson", categoryGroupJson);
+            model.addAttribute("avgCategoryScoresJson", avgCategoryScoresJson);
         } catch (JsonProcessingException e) {
             logger.error("[{}] - Error converting performance data to JSON", username, e);
             model.addAttribute("scoreBucketsJson", "{}");
             model.addAttribute("passFailJson", "{}");
             model.addAttribute("categoryGroupJson", "{}");
+            model.addAttribute("avgCategoryScoresJson", "{}");
         }
 
         return "user-performance";

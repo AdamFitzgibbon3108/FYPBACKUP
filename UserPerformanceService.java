@@ -36,6 +36,7 @@ public class UserPerformanceService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
         List<QuizResult> results = quizResultRepository.findByUserId(user.getId());
+        logger.info("Fetched {} quiz results for user: {}", results.size(), username);
 
         if (results.isEmpty()) {
             return new UserPerformanceDTO(user.getId(), user.getUsername(), 0, 0.0, 0, 0, "N/A", "N/A");
@@ -127,5 +128,36 @@ public class UserPerformanceService {
         }
 
         return groupCounts;
+    }
+
+    public Map<String, Double> getAverageScorePerCategory(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        List<QuizResult> results = quizResultRepository.findByUserId(user.getId());
+
+        logger.info("Calculating average score per category for user: {} with {} quiz results", username, results.size());
+
+        Map<String, List<QuizResult>> grouped = results.stream()
+                .filter(r -> {
+                    SecurityControl control = securityControlRepository.findByNameIgnoreCase(r.getCategory()).orElse(null);
+                    boolean include = control != null && control.getCategoryGroup() != null;
+                    if (!include) {
+                        logger.warn("Excluded category '{}': missing or null category group", r.getCategory());
+                    }
+                    return include;
+                })
+                .collect(Collectors.groupingBy(QuizResult::getCategory));
+
+        logger.info("Grouped into {} categories for averaging", grouped.size());
+
+        Map<String, Double> averages = new TreeMap<>();
+        for (Map.Entry<String, List<QuizResult>> entry : grouped.entrySet()) {
+            double total = entry.getValue().stream().mapToDouble(QuizResult::getTotalScore).sum();
+            double count = entry.getValue().size();
+            double average = Math.round((total / count) * 10.0) / 10.0;
+            logger.info("Category: {}, Total Score: {}, Attempts: {}, Average: {}", entry.getKey(), total, count, average);
+            averages.put(entry.getKey(), average);
+        }
+
+        return averages;
     }
 }

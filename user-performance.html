@@ -73,7 +73,7 @@
         }
 
         .chart-wrapper {
-            max-width: 720px;
+            width: 95%;
             margin: 28px auto;
         }
 
@@ -86,10 +86,10 @@
         }
 
         canvas {
-            background-color: #f8fafc;
+            background-color: transparent;
             border-radius: 12px;
             padding: 10px;
-            height: 420px !important;
+            height: 280px !important;
         }
 
         .links {
@@ -173,18 +173,11 @@
         </div>
 
         <div class="chart-section">
-            <h2 style="text-align:center; color:#cbd5e1;">Score Distribution</h2>
-            <canvas id="scoreBucketChart"></canvas>
-        </div>
-
-        <div class="chart-section">
-            <h2 style="text-align:center; color:#cbd5e1;">Pass vs Fail</h2>
-            <canvas id="passFailChart"></canvas>
-        </div>
-
-        <div class="chart-section">
-            <h2 style="text-align:center; color:#cbd5e1;">Category Group Distribution</h2>
-            <canvas id="categoryGroupChart"></canvas>
+            <h2 style="text-align:center; color:#cbd5e1;">Top 10 Categories by Average Score</h2>
+            <p style="text-align:center; color:#94a3b8; margin-top: -10px; font-size: 0.95rem;">
+                Your best and worst areas are highlighted.
+            </p>
+            <canvas id="categoryAvgChart"></canvas>
         </div>
     </div>
 
@@ -204,11 +197,28 @@
 <script th:if="${performance != null and performance.totalQuizzes > 0}">
 /*<![CDATA[*/
 const averageScore = [[${performance.averageScore}]];
-const scoreBuckets = [[${scoreBucketsJson}]];
-const passFail = [[${passFailJson}]];
-const categoryGroups = [[${categoryGroupJson}]];
+const rawCategoryScores = JSON.parse([[${avgCategoryScoresJson}]]);
+const categoryLabels = Object.keys(rawCategoryScores);
+const categoryValues = categoryLabels.map(label => rawCategoryScores[label]);
 
-// Chart 1: Average Score
+const topCategories = categoryLabels
+    .map((label, i) => ({ label, score: categoryValues[i] }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+const topLabels = topCategories.map(c => c.label);
+const topScores = topCategories.map(c => c.score);
+
+const maxIndex = topScores.indexOf(Math.max(...topScores));
+const minIndex = topScores.indexOf(Math.min(...topScores));
+
+const barColors = topScores.map((_, i) => {
+    if (i === maxIndex) return 'rgba(34,197,94,0.85)';  // green for best
+    if (i === minIndex) return 'rgba(239,68,68,0.85)';  // red for worst
+    return 'rgba(251,191,36,0.85)';  // yellow for others
+});
+
+// Chart 1: Overall Average Score
 new Chart(document.getElementById('overallScoreChart'), {
     type: 'bar',
     data: {
@@ -226,79 +236,50 @@ new Chart(document.getElementById('overallScoreChart'), {
             y: {
                 beginAtZero: true,
                 suggestedMax: 10,
-                title: { display: true, text: 'Score' }
+                title: { display: true, text: 'Score', color: '#f8fafc' },
+                ticks: { color: '#f8fafc' }
+            },
+            x: {
+                ticks: { color: '#f8fafc' }
             }
         }
     }
 });
 
-// Chart 2: Score Bucket Distribution
-new Chart(document.getElementById('scoreBucketChart'), {
+// Chart 2: Horizontal Bar - Top Categories
+new Chart(document.getElementById('categoryAvgChart'), {
     type: 'bar',
     data: {
-        labels: Object.keys(scoreBuckets),
+        labels: topLabels,
         datasets: [{
-            label: 'Quiz Count',
-            data: Object.values(scoreBuckets),
-            backgroundColor: 'rgba(34,197,94,0.8)',
-            borderRadius: 8
+            label: 'Average Score',
+            data: topScores,
+            backgroundColor: barColors,
+            borderRadius: 6
         }]
     },
     options: {
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: { display: true, text: 'Count' }
-            }
-        }
-    }
-});
-
-// Chart 3: Pass vs Fail
-new Chart(document.getElementById('passFailChart'), {
-    type: 'pie',
-    data: {
-        labels: Object.keys(passFail),
-        datasets: [{
-            data: Object.values(passFail),
-            backgroundColor: ['#10b981', '#ef4444']
-        }]
-    }
-});
-
-// Chart 4: Category Group Distribution
-new Chart(document.getElementById('categoryGroupChart'), {
-    type: 'doughnut',
-    data: {
-        labels: Object.keys(categoryGroups),
-        datasets: [{
-            data: Object.values(categoryGroups),
-            backgroundColor: ['#3b82f6', '#f59e0b', '#a855f7', '#f43f5e', '#22c55e']
-        }]
-    },
-    options: {
+        indexAxis: 'y',
         responsive: true,
-        plugins: {
-            legend: {
-                position: 'right',
-                labels: {
-                    color: '#e2e8f0',
-                    font: {
-                        size: 14
-                    },
-                    boxWidth: 20,
-                    padding: 20
-                }
+        scales: {
+            x: {
+                beginAtZero: true,
+                title: { display: true, text: 'Average Score', color: '#f8fafc' },
+                ticks: { color: '#f8fafc' }
             },
+            y: {
+                ticks: {
+                    color: '#f8fafc',
+                    font: { size: 13 }
+                }
+            }
+        },
+        plugins: {
+            legend: { display: false },
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        const label = context.label || '';
-                        const value = context.raw || 0;
-                        return `${label}: ${value} quizzes`;
+                        return `${context.label}: ${context.raw.toFixed(2)}`;
                     }
                 }
             }
@@ -307,9 +288,7 @@ new Chart(document.getElementById('categoryGroupChart'), {
 });
 /*]]>*/
 </script>
+
 </body>
 </html>
-
-
-
 
