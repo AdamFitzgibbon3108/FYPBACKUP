@@ -160,4 +160,26 @@ public class UserPerformanceService {
 
         return averages;
     }
-}
+
+    public Map<String, Double> getAverageScorePerRole(String username) {
+        User user = userRepository.findByUsername(username).orElseThrow();
+        List<QuizResult> results = quizResultRepository.findByUserId(user.getId());
+
+        logger.info("Calculating average score per role for user: {}", username);
+
+        Map<String, List<QuizResult>> grouped = results.stream()
+                .filter(r -> r.getRole() != null)
+                .collect(Collectors.groupingBy(QuizResult::getRole));
+
+        Map<String, Double> roleAverages = new TreeMap<>();
+        for (Map.Entry<String, List<QuizResult>> entry : grouped.entrySet()) {
+            double total = entry.getValue().stream().mapToDouble(QuizResult::getTotalScore).sum();
+            double count = entry.getValue().size();
+            double avg = Math.round((total / count) * 10.0) / 10.0;
+            logger.info("Role: {}, Total Score: {}, Attempts: {}, Average: {}", entry.getKey(), total, count, avg);
+            roleAverages.put(entry.getKey(), avg);
+        }
+
+        return roleAverages;
+    }
+} 

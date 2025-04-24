@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" th:inline="javascript">
 <head>
-    <title>User Performance</title>
+    <title>Cyber Performance Dashboard</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --cyber-blue: #00f0ff;
+            --cyber-purple: #6e00ff;
+            --cyber-pink: #ff00a0;
+            --cyber-dark: #0a0a12;
+            --cyber-dark-secondary: #1a1a2e;
+            --cyber-gray: #2d2d44;
+            --cyber-light: #e2f1f8;
+            --cyber-alert: #ff3e3e;
+            --cyber-success: #00ff88;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(to right, #0f172a, #1e293b);
-            color: #f8fafc;
+            font-family: 'Ubuntu Mono', monospace;
+            background-color: var(--cyber-dark);
+            color: var(--cyber-light);
             margin: 0;
             padding: 40px 20px;
             animation: fadeInBody 1s ease-in-out;
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(110, 0, 255, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 20%);
         }
 
         @keyframes fadeInBody {
@@ -30,59 +47,103 @@
         }
 
         h1 {
-            color: #38bdf8;
+            color: var(--cyber-blue);
             margin-bottom: 30px;
             font-size: 2.6rem;
             text-align: center;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, var(--cyber-blue), var(--cyber-purple));
+            margin: 10px auto 0;
+            border-radius: 3px;
         }
 
         .grid {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             justify-content: center;
-            flex-wrap: wrap;
             margin-bottom: 28px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .stats-box {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 16px;
+            background: var(--cyber-dark-secondary);
+            border: 1px solid var(--cyber-gray);
+            border-radius: 8px;
             padding: 22px;
-            width: 220px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            transition: all 0.25s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--cyber-blue), var(--cyber-purple));
         }
 
         .stats-box:hover {
-            transform: scale(1.04);
-            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.1);
+            border-color: var(--cyber-blue);
         }
 
         .stats-box h2 {
             font-size: 1rem;
-            color: #94a3b8;
+            color: var(--cyber-blue);
             margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .stats-box p {
             font-size: 2.3rem;
             font-weight: bold;
-            color: #ffffff;
+            color: white;
+            margin: 0;
+            font-family: 'Share Tech Mono', monospace;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
         }
 
         .section-heading {
             text-align: center;
-            color: #f1f5f9;
+            color: var(--cyber-blue);
             font-size: 1.6rem;
             margin-top: 60px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #334155;
+            margin-bottom: 30px;
             padding-bottom: 10px;
             width: 90%;
             margin-left: auto;
             margin-right: auto;
+            position: relative;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .section-heading::after {
+            content: '';
+            display: block;
+            width: 150px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, var(--cyber-blue), transparent);
+            margin: 10px auto 0;
         }
 
         .chart-wrapper {
@@ -92,26 +153,44 @@
         }
 
         .chart-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 28px;
+            justify-items: center;
+            align-items: start;
         }
 
         .chart-section {
-            background: #1e293b;
-            border-radius: 14px;
+            background: var(--cyber-dark-secondary);
+            border-radius: 8px;
             padding: 30px 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-            flex: 1 1 620px;
-            max-width: 680px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 640px;
+            min-height: 420px;
+            border: 1px solid var(--cyber-gray);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(135deg, transparent 0%, rgba(0, 240, 255, 0.03) 100%);
+            pointer-events: none;
         }
 
         .chart-section h2 {
             text-align: center;
-            color: #cbd5e1;
+            color: var(--cyber-blue);
             font-size: 1.4rem;
             margin-bottom: 6px;
+            font-family: 'Share Tech Mono', monospace;
         }
 
         .chart-section p {
@@ -123,120 +202,291 @@
         }
 
         #overallScoreChart {
-            height: 300px !important;
+            height: 540px !important;
         }
 
         #categoryAvgChart {
-            height: 500px !important;
+            height: 540px !important;
+        }
+
+        #roleAvgChart {
+            height: 420px !important;
+        }
+
+        #newChartPlaceholder {
+            height: 420px !important;
         }
 
         canvas {
             background-color: transparent;
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 10px;
+            display: block;
+            margin: 0 auto;
         }
 
         .links {
             text-align: center;
-            margin-top: 25px;
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .links a {
             display: inline-block;
-            margin: 12px;
+            margin: 0;
             padding: 12px 22px;
             font-weight: bold;
             text-decoration: none;
-            background-color: #3b82f6;
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
-            transition: all 0.25s ease;
+            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
+            color: var(--cyber-dark);
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 240, 255, 0.3);
+            transition: all 0.3s ease;
+            font-family: 'Share Tech Mono', monospace;
+            letter-spacing: 1px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .links a::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.3) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            transform: rotate(30deg);
+            transition: all 0.3s ease;
         }
 
         .links a:hover {
-            background-color: #2563eb;
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 240, 255, 0.4);
+            color: white;
+        }
+
+        .links a:hover::before {
+            left: 100%;
         }
 
         .no-data {
             text-align: center;
             margin-top: 40px;
             font-size: 18px;
-            color: #cbd5e1;
+            color: var(--cyber-light);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 30px;
+            background: var(--cyber-dark-secondary);
+            border-radius: 8px;
+            border: 1px dashed var(--cyber-gray);
         }
 
         .banner {
-            background: #1d4ed8;
+            background: linear-gradient(135deg, var(--cyber-purple), var(--cyber-blue));
             padding: 16px 28px;
-            border-radius: 14px;
-            color: white;
+            border-radius: 8px;
+            color: var(--cyber-dark);
             font-size: 1.15rem;
             text-align: center;
-            margin: 20px auto;
+            margin: 30px auto;
             width: fit-content;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 20px rgba(110, 0, 255, 0.3);
+            font-weight: bold;
+            max-width: 800px;
+            position: relative;
+            overflow: hidden;
+            border: none;
+        }
+
+        .banner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.2) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            pointer-events: none;
+        }
+
+        .glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+            }
+            to {
+                text-shadow: 0 0 10px rgba(0, 240, 255, 0.8), 0 0 20px rgba(0, 240, 255, 0.3);
+            }
+        }
+
+        .cyber-border {
+            position: relative;
+            border: 1px solid var(--cyber-gray);
+        }
+
+        .cyber-border::before, .cyber-border::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--cyber-blue);
+        }
+
+        .cyber-border::before {
+            top: -1px;
+            left: -1px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .cyber-border::after {
+            bottom: -1px;
+            right: -1px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Terminal-like effect for empty state */
+        .terminal {
+            background-color: rgba(10, 10, 18, 0.7);
+            border: 1px solid var(--cyber-blue);
+            border-radius: 5px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .terminal::before {
+            content: '>_';
+            position: absolute;
+            top: -12px;
+            left: 10px;
+            background: var(--cyber-dark);
+            padding: 0 10px;
+            color: var(--cyber-blue);
+            font-size: 14px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-section {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-box p {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-<h1 class="fade-in">Your Performance Summary</h1>
+<h1 class="fade-in glow">CYBER PERFORMANCE DASHBOARD</h1>
 
 <div th:if="${performance != null and performance.totalQuizzes > 0}">
     <div class="grid fade-in">
-        <div class="stats-box" title="The total number of quizzes you've completed">
-            <h2>Total Quizzes Taken</h2>
+        <div class="stats-box cyber-border" title="The total number of quizzes you've completed">
+            <h2>QUIZZES COMPLETED</h2>
             <p th:text="${performance.totalQuizzes}">0</p>
         </div>
-        <div class="stats-box" title="Average score across all quizzes (0-10)">
-            <h2>Average Score</h2>
+        <div class="stats-box cyber-border" title="Average score across all quizzes (0-10)">
+            <h2>AVG SCORE</h2>
             <p th:text="${#numbers.formatDecimal(performance.averageScore, 1, 2)}">0.00</p>
         </div>
-        <div class="stats-box" title="Your highest score achieved in any quiz">
-            <h2>Best Score</h2>
+        <div class="stats-box cyber-border" title="Your highest score achieved in any quiz">
+            <h2>TOP SCORE</h2>
             <p th:text="${performance.bestScore}">0</p>
         </div>
-        <div class="stats-box" title="Score from your most recent quiz">
-            <h2>Latest Score</h2>
+        <div class="stats-box cyber-border" title="Score from your most recent quiz">
+            <h2>LATEST SCAN</h2>
             <p th:text="${performance.latestScore}">0</p>
         </div>
-        <div class="stats-box" title="Category in which you've performed best">
-            <h2>Top Category</h2>
+        <div class="stats-box cyber-border" title="Category in which you've performed best">
+            <h2>STRONGEST AREA</h2>
             <p th:text="${performance.topCategory ?: '-'}">-</p>
         </div>
     </div>
 
     <div class="banner fade-in">
-        Great work! Keep going to improve your skills even more!
+        <span class="glow">SYSTEM ANALYSIS COMPLETE</span> | KEEP IMPROVING YOUR CYBER DEFENSES
     </div>
 
-    <div class="section-heading">📊 Visual Insights</div>
+    <div class="section-heading">PERFORMANCE METRICS</div>
 
     <div class="chart-wrapper fade-in">
         <div class="chart-grid">
-            <div class="chart-section">
-                <h2>Your Average Quiz Score</h2>
+            <div class="chart-section cyber-border">
+                <h2>YOUR AVERAGE QUIZ SCORE</h2>
                 <canvas id="overallScoreChart"></canvas>
             </div>
 
-            <div class="chart-section">
-                <h2>Top 10 Categories by Average Score</h2>
-                <p>Your best and worst areas are highlighted.</p>
+            <div class="chart-section cyber-border">
+                <h2>TOP 10 SECURITY DOMAINS</h2>
+                <p>Vulnerability assessment by category</p>
                 <canvas id="categoryAvgChart"></canvas>
+            </div>
+
+            <div class="chart-section cyber-border">
+                <h2>ROLE-BASED COMPETENCY</h2>
+                <p>Effectiveness across security roles</p>
+                <canvas id="roleAvgChart"></canvas>
+            </div>
+
+            <!-- Placeholder for additional chart -->
+            <div class="chart-section cyber-border" style="min-height: 420px;">
+                <h2>THREAT DETECTION TIMELINE</h2>
+                <p>Coming soon - performance over time</p>
+                <canvas id="newChartPlaceholder"></canvas>
             </div>
         </div>
     </div>
 
     <div class="links fade-in">
-        <a href="/user/quiz-history">📄 View Detailed Quiz History</a>
-        <a href="/dashboard">⬅ Back to Dashboard</a>
+        <a href="/user/quiz-history">ACCESS FULL QUIZ HISTORY</a>
+        <a href="/dashboard">RETURN TO DASHBOARD</a>
     </div>
 </div>
 
-<div class="no-data fade-in" th:if="${performance == null or performance.totalQuizzes == 0}">
-    <p>You haven't taken any quizzes yet. Once you complete a few, your performance summary will appear here!</p>
-    <div class="links">
-        <a href="/dashboard">⬅ Back to Dashboard</a>
+<div class="no-data fade-in terminal" th:if="${performance == null or performance.totalQuizzes == 0}">
+    <p>NO SECURITY SCANS DETECTED</p>
+    <p>INITIATE QUIZZES TO GENERATE PERFORMANCE DATA</p>
+    <p>SYSTEM READY FOR FIRST ASSESSMENT...</p>
+    <div class="links" style="margin-top: 30px;">
+        <a href="/dashboard">RETURN TO DASHBOARD</a>
     </div>
 </div>
 
@@ -244,6 +494,8 @@
 /*<![CDATA[*/
 const averageScore = [[${performance.averageScore}]];
 const rawCategoryScores = JSON.parse([[${avgCategoryScoresJson}]]);
+const roleAvgScores = JSON.parse([[${avgRoleScoresJson}]]);
+
 const categoryLabels = Object.keys(rawCategoryScores);
 const categoryValues = categoryLabels.map(label => rawCategoryScores[label]);
 
@@ -259,11 +511,12 @@ const maxIndex = topScores.indexOf(Math.max(...topScores));
 const minIndex = topScores.indexOf(Math.min(...topScores));
 
 const barColors = topScores.map((_, i) => {
-    if (i === maxIndex) return 'rgba(34,197,94,0.85)';  // green
-    if (i === minIndex) return 'rgba(239,68,68,0.85)';  // red
-    return 'rgba(251,191,36,0.85)';                     // yellow
+    if (i === maxIndex) return 'rgba(0, 255, 136, 0.85)'; // cyber-success
+    if (i === minIndex) return 'rgba(255, 62, 62, 0.85)'; // cyber-alert
+    return 'rgba(0, 240, 255, 0.85)'; // cyber-blue
 });
 
+// Overall Score Chart
 new Chart(document.getElementById('overallScoreChart'), {
     type: 'bar',
     data: {
@@ -271,24 +524,66 @@ new Chart(document.getElementById('overallScoreChart'), {
         datasets: [{
             label: 'Average Quiz Score',
             data: [averageScore],
-            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-            borderRadius: 10
+            backgroundColor: 'rgba(110, 0, 255, 0.7)',
+            borderColor: 'rgba(0, 240, 255, 0.8)',
+            borderWidth: 1,
+            borderRadius: 5
         }]
     },
     options: {
-        plugins: { legend: { display: false } },
+        plugins: { 
+            legend: { 
+                display: false,
+                labels: {
+                    color: 'white'
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `Score: ${context.raw.toFixed(2)}`;
+                    }
+                }
+            }
+        },
         scales: {
             y: {
                 beginAtZero: true,
                 suggestedMax: 10,
-                title: { display: true, text: 'Score', color: '#f8fafc' },
-                ticks: { color: '#f8fafc' }
+                title: { 
+                    display: true, 
+                    text: 'Score', 
+                    color: 'white',
+                    font: {
+                        family: 'Share Tech Mono'
+                    }
+                },
+                ticks: { 
+                    color: 'white',
+                    font: {
+                        family: 'Ubuntu Mono'
+                    }
+                },
+                grid: {
+                    color: 'rgba(45, 45, 68, 0.5)'
+                }
             },
-            x: { ticks: { color: '#f8fafc' } }
+            x: { 
+                ticks: { 
+                    color: 'white',
+                    font: {
+                        family: 'Ubuntu Mono'
+                    }
+                },
+                grid: {
+                    display: false
+                }
+            }
         }
     }
 });
 
+// Category Average Chart
 new Chart(document.getElementById('categoryAvgChart'), {
     type: 'bar',
     data: {
@@ -297,7 +592,9 @@ new Chart(document.getElementById('categoryAvgChart'), {
             label: 'Average Score',
             data: topScores,
             backgroundColor: barColors,
-            borderRadius: 6
+            borderColor: 'rgba(0, 0, 0, 0.2)',
+            borderWidth: 1,
+            borderRadius: 4
         }]
     },
     options: {
@@ -307,18 +604,44 @@ new Chart(document.getElementById('categoryAvgChart'), {
         scales: {
             x: {
                 beginAtZero: true,
-                title: { display: true, text: 'Average Score', color: '#f8fafc' },
-                ticks: { color: '#f8fafc' }
+                title: { 
+                    display: true, 
+                    text: 'Average Score', 
+                    color: 'white',
+                    font: {
+                        family: 'Share Tech Mono'
+                    }
+                },
+                ticks: { 
+                    color: 'white',
+                    font: {
+                        family: 'Ubuntu Mono'
+                    }
+                },
+                grid: {
+                    color: 'rgba(45, 45, 68, 0.5)'
+                }
             },
             y: {
                 ticks: {
-                    color: '#f8fafc',
-                    font: { size: 13 }
+                    color: 'white',
+                    font: {
+                        family: 'Ubuntu Mono',
+                        size: 13
+                    }
+                },
+                grid: {
+                    display: false
                 }
             }
         },
         plugins: {
-            legend: { display: false },
+            legend: { 
+                display: false,
+                labels: {
+                    color: 'white'
+                }
+            },
             tooltip: {
                 callbacks: {
                     label: function(context) {
@@ -329,8 +652,108 @@ new Chart(document.getElementById('categoryAvgChart'), {
         }
     }
 });
+
+// Role Average Chart
+const roleLabels = Object.keys(roleAvgScores);
+const roleValues = Object.values(roleAvgScores);
+
+new Chart(document.getElementById('roleAvgChart'), {
+    type: 'doughnut',
+    data: {
+        labels: roleLabels,
+        datasets: [{
+            data: roleValues,
+            backgroundColor: [
+                'rgba(0, 240, 255, 0.8)',
+                'rgba(110, 0, 255, 0.8)',
+                'rgba(255, 0, 160, 0.8)',
+                'rgba(0, 255, 136, 0.8)'
+            ],
+            borderColor: 'var(--cyber-dark-secondary)',
+            borderWidth: 2
+        }]
+    },
+    options: {
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    color: 'white',
+                    font: {
+                        family: 'Ubuntu Mono',
+                        size: 13
+                    },
+                    padding: 20
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `${context.label}: ${context.raw.toFixed(2)}`;
+                    }
+                }
+            }
+        },
+        cutout: '65%'
+    }
+});
+
+// Placeholder for new chart
+new Chart(document.getElementById('newChartPlaceholder'), {
+    type: 'line',
+    data: {
+        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        datasets: [{
+            label: 'Coming Soon',
+            data: [5, 6, 7, 8],
+            borderColor: 'rgba(110, 0, 255, 0.8)',
+            backgroundColor: 'rgba(110, 0, 255, 0.2)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                display: false,
+                labels: {
+                    color: 'white'
+                }
+            },
+            title: {
+                display: true,
+                text: 'ADDITIONAL METRICS COMING SOON',
+                color: 'white',
+                font: {
+                    family: 'Share Tech Mono',
+                    size: 16
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    color: 'white'
+                },
+                grid: {
+                    color: 'rgba(45, 45, 68, 0.5)'
+                }
+            },
+            x: {
+                ticks: {
+                    color: 'white'
+                },
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
 /*]]>*/
 </script>
-
 </body>
 </html>

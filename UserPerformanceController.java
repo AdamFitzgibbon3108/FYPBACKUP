@@ -40,27 +40,31 @@ public class UserPerformanceController {
         Map<String, Long> passFail = userPerformanceService.getPassFailDistribution(username);
         Map<String, Long> categoryGroups = userPerformanceService.getCategoryGroupDistribution(username);
         Map<String, Double> avgCategoryScores = userPerformanceService.getAverageScorePerCategory(username);
+        Map<String, Double> avgRoleScores = userPerformanceService.getAverageScorePerRole(username);
 
         try {
             String scoreBucketsJson = objectMapper.writeValueAsString(scoreBuckets);
             String passFailJson = objectMapper.writeValueAsString(passFail);
             String categoryGroupJson = objectMapper.writeValueAsString(categoryGroups);
             String avgCategoryScoresJson = objectMapper.writeValueAsString(avgCategoryScores);
+            String avgRoleScoresJson = objectMapper.writeValueAsString(avgRoleScores);
 
-            logger.info("[{}] - Prepared chart data: scoreBuckets={}, passFail={}, categoryGroups={}, avgScores={}",
-                    username, scoreBucketsJson, passFailJson, categoryGroupJson, avgCategoryScoresJson);
+            logger.info("[{}] - Prepared chart data: scoreBuckets={}, passFail={}, categoryGroups={}, avgScores={}, roleScores={}",
+                    username, scoreBucketsJson, passFailJson, categoryGroupJson, avgCategoryScoresJson, avgRoleScoresJson);
 
             model.addAttribute("performance", performance);
             model.addAttribute("scoreBucketsJson", scoreBucketsJson);
             model.addAttribute("passFailJson", passFailJson);
             model.addAttribute("categoryGroupJson", categoryGroupJson);
             model.addAttribute("avgCategoryScoresJson", avgCategoryScoresJson);
+            model.addAttribute("avgRoleScoresJson", avgRoleScoresJson);
         } catch (JsonProcessingException e) {
             logger.error("[{}] - Error converting performance data to JSON", username, e);
             model.addAttribute("scoreBucketsJson", "{}");
             model.addAttribute("passFailJson", "{}");
             model.addAttribute("categoryGroupJson", "{}");
             model.addAttribute("avgCategoryScoresJson", "{}");
+            model.addAttribute("avgRoleScoresJson", "{}");
         }
 
         return "user-performance";
