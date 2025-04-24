@@ -213,8 +213,8 @@
             height: 420px !important;
         }
 
-        #newChartPlaceholder {
-            height: 420px !important;
+        #scoreOverTimeChart {
+            height: 520px !important;
         }
 
         canvas {
@@ -462,15 +462,15 @@
 
             <div class="chart-section cyber-border">
                 <h2>ROLE-BASED COMPETENCY</h2>
-                <p>Effectiveness across security roles</p>
+                <p>Average score across security roles</p>
                 <canvas id="roleAvgChart"></canvas>
             </div>
 
             <!-- Placeholder for additional chart -->
             <div class="chart-section cyber-border" style="min-height: 420px;">
                 <h2>THREAT DETECTION TIMELINE</h2>
-                <p>Coming soon - performance over time</p>
-                <canvas id="newChartPlaceholder"></canvas>
+                <p>Quiz Frequency and engagement over time</p>
+                <canvas id="scoreOverTimeChart"></canvas>
             </div>
         </div>
     </div>
@@ -699,60 +699,74 @@ new Chart(document.getElementById('roleAvgChart'), {
 });
 
 // Placeholder for new chart
-new Chart(document.getElementById('newChartPlaceholder'), {
+const quizActivityTimeline = JSON.parse([[${quizActivityTimelineJson}]]);
+const activityLabels = Object.keys(quizActivityTimeline);
+const activityData = Object.values(quizActivityTimeline);
+
+new Chart(document.getElementById('scoreOverTimeChart'), {
     type: 'line',
     data: {
-        labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+        labels: activityLabels,
         datasets: [{
-            label: 'Coming Soon',
-            data: [5, 6, 7, 8],
-            borderColor: 'rgba(110, 0, 255, 0.8)',
-            backgroundColor: 'rgba(110, 0, 255, 0.2)',
+            label: 'Quiz Attempts Over Time',
+            data: activityData,
+            borderColor: 'rgba(0, 240, 255, 0.8)',
+            backgroundColor: 'rgba(0, 240, 255, 0.2)',
+            fill: true,
+            tension: 0.4,
             borderWidth: 2,
-            tension: 0.3,
-            fill: true
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgba(0, 240, 255, 1)',
+            pointBorderColor: 'rgba(0, 240, 255, 1)',
+            pointHitRadius: 10,
+            pointHoverBorderWidth: 2
         }]
     },
     options: {
         responsive: true,
+        interaction: {
+            mode: 'index',     // show tooltip for the nearest point
+            intersect: false   // do not require pointer to intersect
+        },
         plugins: {
             legend: {
-                display: false,
-                labels: {
-                    color: 'white'
-                }
+                display: false
             },
-            title: {
-                display: true,
-                text: 'ADDITIONAL METRICS COMING SOON',
-                color: 'white',
-                font: {
-                    family: 'Share Tech Mono',
-                    size: 16
+            tooltip: {
+                backgroundColor: '#000',
+                borderColor: '#00f0ff',
+                borderWidth: 1,
+                titleColor: '#00f0ff',
+                bodyColor: '#fff',
+                callbacks: {
+                    // Show only the value, clearly
+                    label: function(context) {
+                        return ` ${context.raw} quizzes`;
+                    }
                 }
             }
         },
         scales: {
+            x: {
+                ticks: { color: 'white' },
+                grid: { display: false }
+            },
             y: {
                 beginAtZero: true,
                 ticks: {
-                    color: 'white'
+                    color: 'white',
+                    stepSize: 10
                 },
                 grid: {
                     color: 'rgba(45, 45, 68, 0.5)'
-                }
-            },
-            x: {
-                ticks: {
-                    color: 'white'
-                },
-                grid: {
-                    display: false
                 }
             }
         }
     }
 });
+
+
 /*]]>*/
 </script>
 </body>
