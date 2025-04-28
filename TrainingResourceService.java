@@ -2,6 +2,7 @@ package com.example.service;
 
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,12 @@ public class TrainingResourceService {
 	// Fetch all training resources for a given category
 	public List<TrainingResource> getResourcesByCategory(String categoryName) {
 		return trainingResourceRepository.findByCategoryNameIgnoreCase(categoryName);
+	}
+
+	// Fetch 3 of worst performing category's
+	public List<TrainingResource> getResourcesForWeakCategories(List<String> categories) {
+		return trainingResourceRepository.findAll().stream()
+				.filter(resource -> categories.contains(resource.getCategoryName())).collect(Collectors.toList());
 	}
 
 	// Optionally, get a single random resource to display as recommendation

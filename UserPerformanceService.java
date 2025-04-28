@@ -173,4 +173,11 @@ public class UserPerformanceService {
 		return results.stream().collect(Collectors.groupingBy(r -> r.getCompletedAt().toLocalDate().format(formatter),
 				TreeMap::new, Collectors.counting()));
 	}
+
+	// Get bottom 3 performing categories
+	public List<String> getWeakestCategories(String username, int limit) {
+		Map<String, Double> averages = getAverageScorePerCategory(username);
+		return averages.entrySet().stream().sorted(Map.Entry.comparingByValue()).limit(limit).map(Map.Entry::getKey)
+				.collect(Collectors.toList());
+	}
 }

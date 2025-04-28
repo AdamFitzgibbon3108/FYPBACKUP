@@ -16,7 +16,27 @@
         h1 {
             color: #00f0ff;
             text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            text-align: center;
             margin-bottom: 30px;
+            font-size: 1rem;
+            color: #c0c0c0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .recommendation-reason {
+            background-color: #1a2e2e;
+            border-left: 4px solid #00ff88;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 800px;
+            font-size: 0.95rem;
         }
 
         .resources-container {
@@ -53,9 +73,20 @@
             text-decoration: underline;
         }
 
-        .back-btn {
+        .resource-category {
             display: inline-block;
-            margin-bottom: 30px;
+            background-color: #2d2d44;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            color: #c0c0c0;
+        }
+
+        .back-btn, .nav-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            margin-right: 10px;
             background: linear-gradient(135deg, #6e00ff, #00f0ff);
             color: #0a0a12;
             padding: 10px 20px;
@@ -70,22 +101,127 @@
             text-align: center;
             color: #ff00a0;
             margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .filter-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        select {
+            padding: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            border-radius: 5px;
+            background-color: #1a1a2e;
+            color: #e2f1f8;
+            border: 1px solid #2d2d44;
+            min-width: 200px;
+        }
+
+        .nav-buttons {
+            text-align: center;
+            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 
-    <a href="/dashboard" class="back-btn">← Back to Dashboard</a>
+    <a href="/dashboard" class="back-btn">&larr; Back to Dashboard</a>
+    
+    <div class="nav-buttons">
+        <a href="/training/personalized" class="nav-btn">Personalized Training</a>
+        <a href="/training/all" class="nav-btn">📚 All Training</a>
+    </div>
 
-    <h1>Recommended Training</h1>
-    <h2 class="category-header" th:text="'Category: ' + ${category}">Category</h2>
+    <h1 th:text="${pageType == 'personalized'} ? 'Personalized Training Recommendations' : 'Security Training Resources'">Security Training Resources</h1>
+
+    <p class="description" th:if="${pageType == 'personalized'}">
+        These recommendations are based on your recent quiz performance. Focus on these areas to strengthen your security knowledge!
+    </p>
+
+    <div th:if="${pageType == 'personalized'}" class="recommendation-reason">
+        <strong>How were these picked?</strong><br/>
+        Your personalized training is selected based on your lowest-scoring categories from recent Security Quizzes. 
+        Strengthen your skills by focusing on these areas!
+    </div>
+
+    <p class="description" th:unless="${pageType == 'personalized'}">
+        Browse through our comprehensive collection of security training resources. Filter by category to find exactly what you need.
+    </p>
+
+    <h2 class="category-header" th:text="${category != 'all'} ? 'Category: ' + ${category} : 'All Training Resources'">All Training Resources</h2>
+
+    <div class="filter-container">
+        <label for="categoryFilter">Filter by Category: </label>
+        <select id="categoryFilter" onchange="filterResources()">
+            <option value="all">All Categories</option>
+            <option value="secure coding">Secure Coding</option>
+            <option value="web security">Web Security</option>
+            <option value="secure development">Secure Development</option>
+            <option value="database security">Database Security</option>
+            <option value="network security">Network Security</option>
+            <option value="access control">Access Control</option>
+            <option value="system security">System Security</option>
+            <option value="incident response">Incident Response</option>
+            <option value="penetration testing">Penetration Testing</option>
+            <option value="security monitoring">Security Monitoring</option>
+            <option value="risk management">Risk Management</option>
+            <option value="social engineering">Social Engineering</option>
+            <option value="security awareness">Security Awareness</option>
+            <option value="authentication">Authentication</option>
+            <option value="security governance">Security Governance</option>
+        </select>
+    </div>
 
     <div class="resources-container">
-        <div th:each="resource : ${resources}" class="resource-card">
+        <div th:if="${#lists.isEmpty(resources)}">
+            <p style="text-align: center;">No training resources available for this category.</p>
+        </div>
+        <div th:each="resource : ${resources}" class="resource-card" th:attr="data-category=${resource.categoryName}">
             <div class="resource-title" th:text="${resource.title}">Resource Title</div>
-            <a class="resource-link" th:href="${resource.url}" target="_blank">Watch on YouTube</a>
+            <a class="resource-link" th:href="${resource.url}" target="_blank">Access Resource →</a>
+            <div class="resource-category" th:text="${resource.categoryName}">Category</div>
         </div>
     </div>
 
+    <script>
+        function filterResources() {
+            var selectedCategory = document.getElementById('categoryFilter').value;
+            var cards = document.getElementsByClassName('resource-card');
+            var categoryHeader = document.querySelector('.category-header');
+
+            if (selectedCategory === 'all') {
+                categoryHeader.textContent = 'All Training Resources';
+            } else {
+                categoryHeader.textContent = 'Category: ' + selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+            }
+
+            for (var i = 0; i < cards.length; i++) {
+                var card = cards[i];
+                var cardCategory = card.getAttribute('data-category').toLowerCase();
+
+                if (selectedCategory === 'all' || cardCategory === selectedCategory.toLowerCase()) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentCategory = '[[${category}]]';
+            if (currentCategory && currentCategory !== 'all') {
+                const select = document.getElementById('categoryFilter');
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value.toLowerCase() === currentCategory.toLowerCase()) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+
