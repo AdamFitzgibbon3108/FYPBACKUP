@@ -1,7 +1,9 @@
 package com.example.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,11 +15,15 @@ import com.example.model.Role;
 import com.example.model.User;
 import com.example.repository.QuestionRepository;
 import com.example.repository.QuestionnaireRepository;
+import com.example.repository.QuizResultRepository;
 import com.example.repository.RoleRepository;
 import com.example.repository.UserRepository;
 
 @Service
 public class AdminService {
+
+	@Autowired
+	private QuizResultRepository quizResultRepository;
 
 	@Autowired
 	private QuestionRepository questionRepository;
@@ -168,12 +174,30 @@ public class AdminService {
 
 	// Get number of active users
 	public long getActiveUsers() {
-		return userRepository.countByActiveTrue(); // ONLY active users now
+		return userRepository.countByActiveTrue();
 	}
 
 	// Admin dashboard statistics
 	public AdminDashboardStats getAdminDashboardStats() {
 		return new AdminDashboardStats(getTotalUsers(), getActiveUsers());
+	}
+
+	// ✅ NEW: Best performing category per user
+	public Map<String, String> getBestCategoryPerUser() {
+		List<Object[]> rawData = quizResultRepository.getAverageScoresPerUserPerCategory();
+		Map<String, Map.Entry<String, Double>> userBestMap = new HashMap<>();
+
+		for (Object[] row : rawData) {
+			String username = (String) row[0];
+			String category = (String) row[1];
+			Double avgScore = ((Number) row[2]).doubleValue();
+
+			if (!userBestMap.containsKey(username) || avgScore > userBestMap.get(username).getValue()) {
+				userBestMap.put(username, Map.entry(category, avgScore));
+			}
+		}
+
+		return userBestMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getKey()));
 	}
 
 	// Inner class for admin statistics

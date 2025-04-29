@@ -4,6 +4,7 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +54,9 @@ public class AdminDashboardController {
 		AdminDashboardStats stats = adminService.getAdminDashboardStats();
 		model.addAttribute("totalUsers", stats.getTotalUsers());
 		model.addAttribute("activeUsers", stats.getActiveUsers());
+
+		// Pass best category per user data
+		model.addAttribute("bestCategoryPerUser", adminService.getBestCategoryPerUser());
 
 		return "admin-dashboard";
 	}
@@ -112,9 +116,19 @@ public class AdminDashboardController {
 		return ResponseEntity.ok("Questionnaire deleted successfully.");
 	}
 
+	// Updated lightweight username APIs
+
 	@GetMapping("/api/users")
-	public ResponseEntity<List<User>> getAllUsers() {
-		return ResponseEntity.ok(adminService.getAllUsers());
+	@ResponseBody
+	public List<String> getAllUsernames() {
+		return adminService.getAllUsers().stream().map(User::getUsername).collect(Collectors.toList());
+	}
+
+	@GetMapping("/api/users/active")
+	@ResponseBody
+	public List<String> getActiveUsernames() {
+		return adminService.getAllUsers().stream().filter(User::isActive).map(User::getUsername)
+				.collect(Collectors.toList());
 	}
 
 	@PutMapping("/api/users/{userId}")
@@ -157,7 +171,6 @@ public class AdminDashboardController {
 		return "admin-user-quiz-history";
 	}
 
-	// New Endpoint for Chart Data
 	@GetMapping("/api/questionnaires-taken-per-role")
 	@ResponseBody
 	public Map<String, Long> getQuestionnairesTakenPerRole() {

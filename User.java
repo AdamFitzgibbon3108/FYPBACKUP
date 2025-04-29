@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore; // ADD THIS
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,7 +42,7 @@ public class User {
 	@Column(nullable = true)
 	private String recommendedSecurityCategory;
 
-	// NEW FIELDS FOR PROFILE
+	// FIELDS FOR PROFILE
 	@Column(nullable = true)
 	private String fullName;
 
@@ -54,6 +56,7 @@ public class User {
 	private String address;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonIgnore // <-- ADD THIS TO PREVENT INFINITE LOOP
 	private List<SurveyResponse> surveyResponses;
 
 	@ManyToMany(fetch = FetchType.EAGER)

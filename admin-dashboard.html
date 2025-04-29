@@ -279,6 +279,8 @@
             position: relative;
             height: 250px;
         }
+        
+        
 
         /* Activity Log */
         .activity-log {
@@ -328,6 +330,93 @@
         .activity-item i {
             color: var(--admin-accent);
         }
+        
+        .table-container {
+    background-color: var(--admin-card);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid var(--admin-border);
+    margin-bottom: 2.5rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--admin-light);
+}
+
+th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+th {
+    color: var(--admin-accent);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+}
+
+.category-tag {
+    background-color: var(--admin-accent);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.modal-content {
+    background-color: var(--admin-card);
+    border-radius: 8px;
+    border: 1px solid var(--admin-border);
+    width: 80%;
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+}
+
+.modal-content h2 {
+    color: var(--admin-accent);
+    margin-bottom: 1.5rem;
+}
+
+.modal-content table {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.modal-content button {
+    background-color: var(--admin-accent);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.modal-content button:hover {
+    background-color: var(--admin-blue);
+}
+        
 
         /* Responsive */
         @media (max-width: 768px) {
@@ -363,7 +452,12 @@
             .admin-main {
                 padding: 1.5rem;
             }
-        }
+            
+            .modal-content {
+                width: 95%;
+                padding: 1rem;
+            }
+        } 
     </style>
 </head>
 <body>
@@ -373,37 +467,35 @@
             <i class="fas fa-shield-alt"></i>
             <h2>ThreatLens Admin</h2>
         </div>
-        
         <nav class="admin-nav">
             <ul>
                 <li><a href="/admin/dashboard" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                 <li><a href="/admin/questions"><i class="fas fa-question-circle"></i> Manage Questions</a></li>
                 <li><a href="/admin/performance"><i class="fas fa-chart-line"></i> User Performance</a></li>
-                <li><a href="/admin/ban"><i class="fas fa-user-slash"></i> Ban/Unban Users</a></li>
+                
             </ul>
         </nav>
-        
         <div class="admin-logout">
             <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </div>
-    
+
     <!-- Admin Main Content -->
     <div class="admin-main">
         <header class="admin-header">
             <div class="admin-title">
                 <h1>Security Administration Console</h1>
-                <p>Elevated privileges mode - Full system access</p>
+                <p> Full system access</p>
             </div>
-            
             <div class="admin-user">
                 <i class="fas fa-user-shield"></i>
                 <span th:text="${adminName}">Administrator</span>
             </div>
         </header>
-        
+
         <!-- Stats Cards -->
         <div class="admin-stats">
+            <!-- Total Users -->
             <div class="stat-card">
                 <div class="stat-header">
                     <h3 class="stat-label">Total Users</h3>
@@ -412,9 +504,9 @@
                     </div>
                 </div>
                 <div class="stat-value" th:text="${totalUsers}">100</div>
-                <a href="/admin/users" class="stat-link">View all users <i class="fas fa-arrow-right"></i></a>
+                <a href="javascript:void(0)" onclick="openAllUsersModal()" class="stat-link">View all users <i class="fas fa-arrow-right"></i></a>
             </div>
-            
+            <!-- Active Users -->
             <div class="stat-card">
                 <div class="stat-header">
                     <h3 class="stat-label">Active Users</h3>
@@ -423,20 +515,9 @@
                     </div>
                 </div>
                 <div class="stat-value" th:text="${activeUsers}">80</div>
-                <a href="/admin/users?filter=active" class="stat-link">View active <i class="fas fa-arrow-right"></i></a>
+                <a href="javascript:void(0)" onclick="openActiveUsersModal()" class="stat-link">View active <i class="fas fa-arrow-right"></i></a>
             </div>
-            
-            <div class="stat-card">
-                <div class="stat-header">
-                    <h3 class="stat-label">Pending Approvals</h3>
-                    <div class="stat-icon">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                </div>
-                <div class="stat-value" th:text="${pendingUsers}">5</div>
-                <a href="/admin/users?filter=pending" class="stat-link">Review requests <i class="fas fa-arrow-right"></i></a>
-            </div>
-            
+            <!-- Recent Assessments -->
             <div class="stat-card">
                 <div class="stat-header">
                     <h3 class="stat-label">Recent Assessments</h3>
@@ -448,8 +529,8 @@
                 <a href="/admin/performance" class="stat-link">View analytics <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
-        
-        <!-- Chart Section -->
+
+        <!-- Chart Section: Role Distribution -->
         <div class="chart-container">
             <div class="chart-header">
                 <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Questionnaires Taken per Role</h3>
@@ -459,23 +540,67 @@
                 <canvas id="roleChart"></canvas>
             </div>
         </div>
-        
-        <!-- Activity Log -->
-        <div class="activity-log">
-            <div class="activity-header">
-                <h3 class="activity-title"><i class="fas fa-history"></i> Recent Activity</h3>
-                <a href="/admin/audit" class="stat-link">View all logs <i class="fas fa-arrow-right"></i></a>
-            </div>
-            
-            <ul class="activity-list">
-                <li class="activity-item" th:each="log : ${activityLogs}">
-                    <i class="fas fa-bell"></i>
-                    <span th:text="${log}">Admin updated a questionnaire</span>
-                </li>
-            </ul>
-        </div>
+
+   <!-- Table Section: Best Category Per User -->
+<div class="table-container">
+    <div class="chart-header">
+        <h3 class="chart-title"><i class="fas fa-user-tag"></i> Best Performing Category per User</h3>
     </div>
-    
+    <table>
+        <thead>
+            <tr>
+                <th><i class="fas fa-user"></i> Username</th>
+                <th><i class="fas fa-layer-group"></i> Best Category</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="entry : ${bestCategoryPerUser}">
+                <td th:text="${entry.key}"></td>
+                <td><span class="category-tag" th:text="${entry.value}"></span></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- All Users Modal -->
+<div id="allUsersModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>All Users</h2>
+        <table id="allUsersTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dynamically loaded -->
+            </tbody>
+        </table>
+        <button onclick="closeModal('allUsersModal')">Close</button>
+    </div>
+</div>
+
+<!-- Active Users Modal -->
+<div id="activeUsersModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Active Users</h2>
+        <table id="activeUsersTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Dynamically loaded -->
+            </tbody>
+        </table>
+        <button onclick="closeModal('activeUsersModal')">Close</button>
+    </div>
+</div>
+
+
+
+    <!-- Scripts -->
     <script>
         // Role Distribution Chart
         fetch('/admin/api/questionnaires-taken-per-role')
@@ -490,7 +615,6 @@
                 ];
                 const total = values.reduce((sum, val) => sum + val, 0);
                 document.getElementById('totalTaken').textContent = total;
-                
                 new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -508,13 +632,7 @@
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                                labels: {
-                                    color: 'white',
-                                    font: {
-                                        size: 14,
-                                        weight: 'bold'
-                                    }
-                                }
+                                labels: { color: 'white', font: { size: 14, weight: 'bold' } }
                             },
                             tooltip: {
                                 callbacks: {
@@ -527,6 +645,86 @@
                     }
                 });
             });
+
+        // Modal Functions
+        function openAllUsersModal() {
+            fetch('/admin/api/users')
+                .then(response => response.json())
+                .then(users => {
+                    const tbody = document.getElementById('allUsersTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                   users.forEach(username => {
+                const row = `<tr>
+                <td>${username}</td>
+                </tr>`;
+                tbody.innerHTML += row;
+                });
+                    document.getElementById('allUsersModal').style.display = 'block';
+                });
+        }
+
+        function openActiveUsersModal() {
+            fetch('/admin/api/users/active')
+                .then(response => response.json())
+                .then(users => {
+                    const tbody = document.getElementById('activeUsersTable').querySelector('tbody');
+                    tbody.innerHTML = '';
+                    users.forEach(username => {
+    const row = `<tr>
+        <td>${username}</td>
+
+    </tr>`;
+    tbody.innerHTML += row;
+});
+
+                    document.getElementById('activeUsersModal').style.display = 'block';
+                });
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+    </script>
+
+    <script th:inline="javascript">
+        const bestData = [[${bestCategoryPerUser}]];
+        const userLabels = Object.keys(bestData);
+        const categoryLabels = Object.values(bestData);
+
+        const ctxBest = document.getElementById('bestCategoryChart');
+
+        new Chart(ctxBest, {
+            type: 'bar',
+            data: {
+                labels: userLabels,
+                datasets: [{
+                    label: 'Best Category',
+                    data: categoryLabels.map(() => 1),
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1e293b',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { display: false },
+                    y: { ticks: { color: 'white', font: { weight: 'bold' } } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Best Category: ' + categoryLabels[context.dataIndex];
+                            }
+                        }
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
