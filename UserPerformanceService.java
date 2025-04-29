@@ -52,16 +52,12 @@ public class UserPerformanceService {
 		int totalQuizzes = results.size();
 		double totalScore = results.stream().mapToDouble(QuizResult::getTotalScore).sum();
 		double averageScore = totalScore / totalQuizzes;
-
 		int bestScore = results.stream().mapToInt(QuizResult::getTotalScore).max().orElse(0);
-
 		int latestScore = results.stream().max(Comparator.comparing(QuizResult::getCompletedAt))
 				.map(QuizResult::getTotalScore).orElse(0);
-
 		String topCategory = results.stream()
 				.collect(Collectors.groupingBy(QuizResult::getCategory, Collectors.counting())).entrySet().stream()
 				.max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse("N/A");
-
 		String mostUsedRole = results.stream()
 				.collect(Collectors.groupingBy(QuizResult::getRole, Collectors.counting())).entrySet().stream()
 				.max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse("N/A");
@@ -174,10 +170,21 @@ public class UserPerformanceService {
 				TreeMap::new, Collectors.counting()));
 	}
 
-	// Get bottom 3 performing categories
 	public List<String> getWeakestCategories(String username, int limit) {
 		Map<String, Double> averages = getAverageScorePerCategory(username);
 		return averages.entrySet().stream().sorted(Map.Entry.comparingByValue()).limit(limit).map(Map.Entry::getKey)
 				.collect(Collectors.toList());
+	}
+
+	// To download recent quizzes (last 10 attempts)
+	public List<String> getRecentQuizSummaries(String username) {
+		List<QuizResult> results = quizResultRepository.findByUserUsername(username);
+
+		return results.stream().sorted(Comparator.comparing(QuizResult::getCompletedAt).reversed()).limit(10)
+				.map(result -> {
+					String date = result.getCompletedAt().toLocalDate().toString();
+					return date + " - " + result.getCategory() + " (" + result.getRole() + ") - Score: "
+							+ result.getTotalScore() + "/" + result.getTotalQuestions();
+				}).collect(Collectors.toList());
 	}
 }

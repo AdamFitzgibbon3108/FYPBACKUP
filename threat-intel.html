@@ -5,21 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Threat Intelligence Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/styles.css}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Orbitron:wght@500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #00e1ff;
-            --primary-hover: #00c2dd;
-            --background: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-secondary: #b0b0b0;
-            --border: #333;
-            --highlight: #ffeb3b;
-            --danger: #ff5e5e;
-            --success: #4caf50;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --primary: #00f0ff;
+            --primary-hover: #00c7d4;
+            --background: #0a0a12;
+            --card-bg: #151520;
+            --text-main: #e0e0ff;
+            --text-secondary: #a0a0c0;
+            --border: #2a2a3a;
+            --highlight: #00ff88;
+            --danger: #ff3860;
+            --success: #2ecc71;
+            --warning: #ff9f43;
+            --shadow: 0 4px 15px rgba(0, 240, 255, 0.1);
+            --cyber-blue: rgba(0, 180, 255, 0.15);
+            --cyber-pulse: 0 0 10px rgba(0, 240, 255, 0.5);
         }
 
         * {
@@ -30,8 +33,11 @@
 
         body {
             background-color: var(--background);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 180, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(0, 240, 255, 0.1) 0%, transparent 50%);
             color: var(--text-main);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
+            font-family: 'JetBrains Mono', monospace;
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -40,43 +46,73 @@
             text-align: center;
             margin: 1.5rem 0 0;
             color: var(--primary);
-            font-size: 2rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
             font-weight: 600;
-            letter-spacing: -0.5px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), transparent);
+            margin: 0.5rem auto 0;
+            opacity: 0.7;
         }
 
         .intro {
             margin: 1.5rem auto;
-            width: 90%;
-            max-width: 1200px;
+            width: 95%;
+            max-width: 1400px;
             font-size: 0.9375rem;
             line-height: 1.6;
             background-color: var(--card-bg);
             padding: 1.25rem;
             border-radius: 8px;
-            border-left: 5px solid var(--primary);
+            border-left: 4px solid var(--primary);
             box-shadow: var(--shadow);
+            border-top: 1px solid rgba(0, 240, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intro::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
         }
 
         .intro strong {
             color: var(--primary);
-            font-weight: 600;
+            font-weight: 500;
         }
 
         .intro a {
             color: var(--primary);
             text-decoration: none;
             font-weight: 500;
+            border-bottom: 1px dotted var(--primary);
+            transition: all 0.2s ease;
         }
 
         .intro a:hover {
-            text-decoration: underline;
+            color: var(--primary-hover);
+            border-bottom: 1px solid var(--primary-hover);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
         }
 
         .container {
             margin: 0 auto;
-            width: 90%;
-            max-width: 1200px;
+            width: 95%;
+            max-width: 1400px;
             padding-bottom: 2rem;
         }
 
@@ -87,24 +123,78 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
+            position: relative;
+        }
+
+        .search-box::before {
+            content: 'SEARCH_QUERY';
+            position: absolute;
+            top: -18px;
+            left: 10px;
+            font-size: 0.7rem;
+            color: var(--primary);
+            opacity: 0.7;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .search-wrapper {
+            display: flex;
+            flex-grow: 1;
+            max-width: 600px;
+            position: relative;
         }
 
         .search-box input {
-            padding: 0.75rem 1rem;
-            flex-grow: 1;
-            max-width: 400px;
-            border-radius: 6px;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            width: 100%;
+            border-radius: 4px;
             border: 1px solid var(--border);
-            background-color: var(--card-bg);
+            background-color: rgba(10, 15, 25, 0.7);
             color: var(--text-main);
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.9375rem;
             transition: all 0.3s ease;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         .search-box input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(0, 225, 255, 0.2);
+            box-shadow: 
+                inset 0 1px 3px rgba(0, 0, 0, 0.5),
+                0 0 0 2px rgba(0, 240, 255, 0.2);
+            background-color: rgba(15, 20, 35, 0.9);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            z-index: 1;
+        }
+
+        .reset-button {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+
+        .reset-button:hover {
+            color: var(--danger);
         }
 
         .table-container {
@@ -112,25 +202,43 @@
             border-radius: 8px;
             box-shadow: var(--shadow);
             margin-bottom: 2rem;
+            border: 1px solid rgba(0, 240, 255, 0.1);
+            background: linear-gradient(to bottom, rgba(0, 180, 255, 0.05), transparent);
+            position: relative;
+        }
+
+        .table-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(0, 180, 255, 0.1), transparent);
+            pointer-events: none;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 800px;
+            background-color: rgba(15, 20, 30, 0.7);
         }
 
         thead {
-            background-color: #222;
+            background: linear-gradient(to bottom, #1a1a2e, #151525);
             color: var(--primary);
             cursor: pointer;
             position: sticky;
             top: 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
 
         th, td {
             padding: 0.875rem 1rem;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 180, 255, 0.1);
             text-align: left;
             font-size: 0.9375rem;
         }
@@ -138,30 +246,36 @@
         th {
             font-weight: 600;
             user-select: none;
-            transition: background-color 0.2s ease;
+            transition: all 0.2s ease;
             white-space: nowrap;
+            text-transform: uppercase;
+            font-size: 0.85rem;
         }
 
         th:hover {
-            background-color: #2a2a2a;
+            background: linear-gradient(to bottom, #202040, #1a1a35);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
         }
 
         th.sorted {
-            background-color: #333;
+            background: linear-gradient(to bottom, #252545, #202040);
             color: #ffffff;
+            text-shadow: 0 0 8px var(--primary);
         }
 
         tr:nth-child(even) {
-            background-color: #1a1a1a;
+            background-color: rgba(20, 25, 45, 0.3);
         }
 
         tr:hover {
-            background-color: #252525;
+            background-color: rgba(0, 180, 255, 0.1);
+            box-shadow: inset 0 0 20px rgba(0, 180, 255, 0.05);
         }
 
         .na {
             color: var(--danger);
             font-style: italic;
+            opacity: 0.8;
         }
 
         .highlight {
@@ -170,6 +284,7 @@
             font-weight: bold;
             padding: 0 2px;
             border-radius: 2px;
+            text-shadow: none;
         }
 
         .modal {
@@ -181,21 +296,35 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
+            background-color: rgba(0, 5, 10, 0.9);
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
-            background-color: var(--card-bg);
+            background: linear-gradient(to bottom, #151530, #101025);
             margin: 10% auto;
             padding: 1.5rem;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(0, 240, 255, 0.2);
             width: 90%;
             max-width: 600px;
             border-radius: 8px;
             color: var(--text-main);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 10px 25px rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(0, 180, 255, 0.2);
             animation: modalFadeIn 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
         }
 
         @keyframes modalFadeIn {
@@ -209,32 +338,53 @@
             font-size: 1.75rem;
             font-weight: bold;
             cursor: pointer;
-            transition: color 0.2s ease;
+            transition: all 0.2s ease;
+            text-shadow: 0 0 5px rgba(255, 56, 96, 0.5);
         }
 
         .close:hover {
-            color: #ff3a3a;
+            color: #ff1a4a;
+            transform: rotate(90deg);
         }
 
         .legend-section p {
             margin: 0.75rem 0;
             line-height: 1.6;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .legend-section p::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .legend-section h3 {
             color: var(--primary);
             margin-top: 0;
             font-size: 1.25rem;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.3);
             padding-bottom: 0.5rem;
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .legend-section h3 i {
+            font-size: 1.1em;
         }
 
         .legend-button {
-            background-color: var(--primary);
+            background: linear-gradient(to right, #0066ff, #00ccff);
             color: #000;
             padding: 0.75rem 1.25rem;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
             font-size: 0.9375rem;
@@ -242,11 +392,44 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 10px rgba(0, 180, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .legend-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 30%,
+                rgba(255, 255, 255, 0.3) 45%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            transform: rotate(30deg);
+            transition: all 0.5s ease;
         }
 
         .legend-button:hover {
-            background-color: var(--primary-hover);
+            background: linear-gradient(to right, #0055ee, #00bbee);
             transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 180, 255, 0.5);
+        }
+
+        .legend-button:hover::before {
+            left: 100%;
+        }
+
+        .legend-button:active {
+            transform: translateY(0);
         }
 
         #sortToast {
@@ -254,15 +437,21 @@
             bottom: 1.5rem;
             left: 50%;
             transform: translateX(-50%);
-            background-color: var(--primary);
+            background: linear-gradient(to right, var(--primary), var(--primary-hover));
             color: #000;
             padding: 0.75rem 1.5rem;
-            border-radius: 6px;
+            border-radius: 4px;
             font-weight: 600;
             display: none;
             z-index: 50;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(0, 240, 255, 0.3);
             animation: toastFadeIn 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
         }
 
         @keyframes toastFadeIn {
@@ -273,12 +462,20 @@
         a {
             color: var(--primary);
             text-decoration: none;
-            transition: color 0.2s ease;
+            transition: all 0.2s ease;
+            border-bottom: 1px dotted var(--primary);
         }
 
         a:hover {
             color: var(--primary-hover);
-            text-decoration: underline;
+            border-bottom: 1px solid var(--primary-hover);
+            text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+        }
+
+        @media (max-width: 1200px) {
+            .container, .intro {
+                width: 98%;
+            }
         }
 
         @media (max-width: 768px) {
@@ -291,7 +488,7 @@
                 align-items: stretch;
             }
             
-            .search-box input {
+            .search-wrapper {
                 max-width: 100%;
             }
             
@@ -306,7 +503,7 @@
             display: inline-block;
             width: 1rem;
             height: 1rem;
-            border: 2px solid rgba(255,255,255,.3);
+            border: 2px solid rgba(0, 240, 255, 0.3);
             border-radius: 50%;
             border-top-color: var(--primary);
             animation: spin 1s ease-in-out infinite;
@@ -315,11 +512,89 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Cyberpunk scanlines effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    rgba(0, 240, 255, 0.03) 1px, 
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(0, 240, 255, 0.03) 1px, 
+                    transparent 1px
+                );
+            background-size: 4px 4px;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        /* Glitch effect on hover for headers */
+        th:hover::after {
+            content: attr(data-col);
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--primary);
+            text-shadow: 
+                2px 0 var(--danger),
+                -2px 0 var(--highlight);
+            clip-path: inset(0 0 50% 0);
+            animation: glitch 0.5s infinite;
+            opacity: 0.7;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Score color coding */
+        td:nth-child(5) {
+            font-weight: 500;
+        }
+
+        td:nth-child(5):not(:empty) {
+            color: var(--success);
+        }
+
+        td:nth-child(5):not(:empty):contains("7") {
+            color: var(--warning);
+        }
+
+        td:nth-child(5):not(:empty):contains("8"), 
+        td:nth-child(5):not(:empty):contains("9"), 
+        td:nth-child(5):not(:empty):contains("10") {
+            color: var(--danger);
+            font-weight: 600;
+            text-shadow: 0 0 5px rgba(255, 56, 96, 0.3);
+        }
+
+        /* Column width adjustments */
+        th:nth-child(1), td:nth-child(1) { width: 12%; } /* ID */
+        th:nth-child(2), td:nth-child(2) { width: 35%; } /* Summary */
+        th:nth-child(3), td:nth-child(3) { width: 12%; } /* Published */
+        th:nth-child(4), td:nth-child(4) { width: 12%; } /* Modified */
+        th:nth-child(5), td:nth-child(5) { width: 8%; }  /* Base Score */
+        th:nth-child(6), td:nth-child(6) { width: 12%; } /* CWE */
+        th:nth-child(7), td:nth-child(7) { width: 9%; }  /* Source */
     </style>
 </head>
 <body>
 
-<h2>Recent CVE Threat Intelligence</h2>
+<h2>THREAT INTELLIGENCE DASHBOARD</h2>
 
 <div class="intro">
     <p>This page displays a live feed of recent <strong>Common Vulnerabilities and Exposures (CVEs)</strong> collected from the public API provided by <a href="https://cve.circl.lu" target="_blank">CIRCL CVE Search</a>.</p>
@@ -328,9 +603,15 @@
 
 <div class="container">
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search CVEs by keyword, ID, or score..." onkeyup="filterTableHighlightSafe()">
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Search CVEs by keyword, ID, or score..." onkeyup="filterTableHighlightSafe()">
+            <button class="reset-button" onclick="resetSearch()" title="Reset search">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
         <button class="legend-button" onclick="document.getElementById('legendModal').style.display='block'" aria-label="View legend">
-            <i class="fas fa-info-circle"></i> View Legend
+            <i class="fas fa-terminal"></i> LEGEND
         </button>
     </div>
 
@@ -338,13 +619,13 @@
         <table id="cveTable" data-sort-dir="asc">
             <thead>
             <tr>
-                <th onclick="sortTable(0, 'ID')">ID <span id="icon-0"></span></th>
-                <th onclick="sortTable(1, 'Summary')">Summary <span id="icon-1"></span></th>
-                <th onclick="sortTable(2, 'Published')">Published <span id="icon-2"></span></th>
-                <th onclick="sortTable(3, 'Modified')">Modified <span id="icon-3"></span></th>
-                <th onclick="sortTable(4, 'Base Score')">Base Score <span id="icon-4"></span></th>
-                <th onclick="sortTable(5, 'CWE')">CWE <span id="icon-5"></span></th>
-                <th onclick="sortTable(6, 'Source')">Source <span id="icon-6"></span></th>
+                <th data-col="ID" onclick="sortTable(0, 'ID')">ID <span id="icon-0"></span></th>
+                <th data-col="SUMMARY" onclick="sortTable(1, 'Summary')">SUMMARY <span id="icon-1"></span></th>
+                <th data-col="PUBLISHED" onclick="sortTable(2, 'Published')">PUBLISHED <span id="icon-2"></span></th>
+                <th data-col="MODIFIED" onclick="sortTable(3, 'Modified')">MODIFIED <span id="icon-3"></span></th>
+                <th data-col="SCORE" onclick="sortTable(4, 'Base Score')">BASE SCORE <span id="icon-4"></span></th>
+                <th data-col="CWE" onclick="sortTable(5, 'CWE')">CWE <span id="icon-5"></span></th>
+                <th data-col="SOURCE" onclick="sortTable(6, 'Source')">SOURCE <span id="icon-6"></span></th>
             </tr>
             </thead>
             <tbody>
@@ -371,14 +652,14 @@
     <div class="modal-content">
         <span class="close" onclick="document.getElementById('legendModal').style.display='none'" aria-label="Close legend">&times;</span>
         <div class="legend-section">
-            <h3><i class="fas fa-book"></i> Threat Intelligence Legend</h3>
-            <p><strong><i class="fas fa-id-card"></i> CVE ID</strong> – A link to the official advisory (NVD or Red Hat).</p>
-            <p><strong><i class="fas fa-align-left"></i> Summary</strong> – Description of the vulnerability.</p>
-            <p><strong><i class="fas fa-calendar-plus"></i> Published</strong> – Date and time of initial release (Dublin time).</p>
-            <p><strong><i class="fas fa-calendar-check"></i> Modified</strong> – Last updated timestamp (Dublin time).</p>
-            <p><strong><i class="fas fa-shield-alt"></i> Base Score</strong> – CVSS severity score (0–10).</p>
-            <p><strong><i class="fas fa-bug"></i> CWE</strong> – Common Weakness Enumeration type.</p>
-            <p><strong><i class="fas fa-database"></i> Source</strong> – Indicates the origin (Red Hat or NVD).</p>
+            <h3><i class="fas fa-shield-alt"></i> THREAT INTELLIGENCE LEGEND</h3>
+            <p><strong>CVE ID</strong> – A link to the official advisory (NVD or Red Hat).</p>
+            <p><strong>SUMMARY</strong> – Description of the vulnerability.</p>
+            <p><strong>PUBLISHED</strong> – Date and time of initial release (Dublin time).</p>
+            <p><strong>MODIFIED</strong> – Last updated timestamp (Dublin time).</p>
+            <p><strong>BASE SCORE</strong> – CVSS severity score (0–10).</p>
+            <p><strong>CWE</strong> – Common Weakness Enumeration type.</p>
+            <p><strong>SOURCE</strong> – Indicates the origin (Red Hat or NVD).</p>
         </div>
     </div>
 </div>
@@ -428,7 +709,7 @@
 
         // Show toast notification
         const toast = document.getElementById("sortToast");
-        toast.innerHTML = `<i class="fas fa-sort-amount-${direction === 'asc' ? 'up' : 'down'}"></i> Sorted by ${label} (${direction})`;
+        toast.innerHTML = `<i class="fas fa-sort-amount-${direction === 'asc' ? 'up' : 'down'}"></i> SORTED BY ${label.toUpperCase()} (${direction.toUpperCase()})`;
         toast.style.display = "block";
         setTimeout(() => { toast.style.display = "none"; }, 2500);
     }
@@ -490,6 +771,13 @@
         });
     }
 
+    function resetSearch() {
+        const searchInput = document.getElementById("searchInput");
+        searchInput.value = "";
+        filterTableHighlightSafe();
+        searchInput.focus();
+    }
+
     function convertToDublinTime(selector) {
         const elements = document.querySelectorAll(selector);
         elements.forEach(el => {
@@ -535,8 +823,7 @@
         if (searchInput) {
             searchInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    this.value = '';
-                    filterTableHighlightSafe();
+                    resetSearch();
                 }
             });
             
